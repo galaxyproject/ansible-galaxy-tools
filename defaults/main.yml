@@ -1,0 +1,6 @@
+---
+
+install_tools: yes
+
+shed_tool_list_file: shed_tool_list_file.yaml
+base_dir: /tmp
