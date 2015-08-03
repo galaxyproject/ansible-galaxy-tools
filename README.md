@@ -1,7 +1,7 @@
 This Ansible role is for automated installation of tools from a Tool Shed into
 Galaxy.
 
-When run, this role will create an execution environemnt on one system and then
+When run, this role will create an execution environment on one system and then
 invoke the tool installation script that will target a Galaxy instance on
 potentially another system. Target hosts are set via variables (see below).
 
@@ -29,7 +29,7 @@ Role variables
 The following variables can be set to either `yes` or `no` to indicate if the
 given part of the role should be executed:
 
- - `install_tools`: (default: `yes`) whether or not to run the tools installation
+ - `galaxy_install_tools`: (default: `yes`) whether or not to run the tools installation
     script
 
 Example playbook
