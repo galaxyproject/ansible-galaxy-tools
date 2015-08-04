@@ -16,11 +16,11 @@ None
 Role variables
 --------------
 ### Required variables ###
-- `galaxy_instance_url`: a URL or an IP address for the Galaxy instance where
-  the tools are to be installed
 - `api_key`: the Galaxy API key for an admin user on the target Galaxy instance
 
 ### Optional variables ###
+- `galaxy_instance_url`: (default `127.0.0.1:8080`) a URL or an IP address for
+  the Galaxy instance where the tools are to be installed
 - `shed_tool_list_file`: (default `files/shed_tool_list_file.yaml`) the file
   containing all the tools to be installed
 - `base_dir`: (default: `/tmp`) the system path from where this role will be run
