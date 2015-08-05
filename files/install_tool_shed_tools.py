@@ -3,7 +3,7 @@ A script to automate installation of tool repositories from a Galaxy Tool Shed
 into an instance of Galaxy.
 
 Galaxy instance details and the installed tools need to be provided in YAML
-format in a separate file; see ``shed_tool_list.yaml.sample`` for a sample of
+format in a separate file; see ``tool_list.yaml.sample`` for a sample of
 such file.
 
 When installing tools, this script expects any `tool_panel_section_id` provided
@@ -80,7 +80,7 @@ def _setup_global_logger():
     return logger
 
 
-def load_input_file(tool_list_file='tool_shed_tool_list.yaml'):
+def load_input_file(tool_list_file='tool_list.yaml'):
     """
     Load YAML from the `tool_list_file` and return a dict with the content.
     """
@@ -264,7 +264,7 @@ def _parse_cli_options():
     parser.add_option("-t", "--toolsfile",
                       dest="tool_list_file",
                       default=None,
-                      help="Tools file to use (see shed_tool_list.yaml.sample)",)
+                      help="Tools file to use (see tool_list.yaml.sample)",)
     parser.add_option("-d", "--dbkeysfile",
                       dest="dbkeys_list_file",
                       default=None,
