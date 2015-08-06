@@ -2,12 +2,13 @@
 A script to automate installation of tool repositories from a Galaxy Tool Shed
 into an instance of Galaxy.
 
-Galaxy instance details and the installed tools need to be provided in YAML
-format in a separate file; see ``tool_list.yaml.sample`` for a sample of
-such file.
+Galaxy instance details and the installed tools can be provided in YAML
+format in a separate file (see ``tool_list.yaml.sample`` for a sample of
+such file) or on the command line as script options (see the usage help). If
+both are provided, the file will take precedence.
 
-When installing tools, this script expects any `tool_panel_section_id` provided
-in the input file to already exist on the target Galaxy instance. If the section
+When installing tools, Galaxy expects any `tool_panel_section_id` provided when
+installing a tool to already exist in the configuration. If the section
 does not exist, the tool will be installed outside any section. See
 `shed_tool_conf.xml.sample` in this directory for a sample of such file. Before
 running this script to install the tools, make sure to place such file into
@@ -36,6 +37,8 @@ from bioblend.galaxy.client import ConnectionError
 logging.getLogger('bioblend').setLevel(logging.ERROR)
 logging.getLogger('requests').setLevel(logging.ERROR)
 logging.captureWarnings(True)  # Capture HTTPS warngings from urllib3
+
+MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 
 
 class ProgressConsoleHandler(logging.StreamHandler):
@@ -186,14 +189,14 @@ def _tools_to_install(owners=['devteam', 'iuc'], return_formatted=False):
     a Tool Shed so the returned list cannot simply be used as the input file but
     (manual!?!) adjustment is necessesary to provide tool category for each tool.
     """
-    tsi = ToolShedInstance('https://toolshed.g2.bx.psu.edu')
+    tsi = ToolShedInstance(MTS)
     repos = tsi.repositories.get_repositories()
     tti = []  # tools to install
     for repo in repos:
         if repo['owner'] in owners and 'package' not in repo['name']:
             if return_formatted:
                 repo = {'name': repo['name'], 'owner': repo['owner'],
-                        'tool_shed_url': 'https://toolshed.g2.bx.psu.edu',
+                        'tool_shed_url': MTS,
                         'tool_panel_section_id': ''}
             tti.append(repo)
     return tti
@@ -276,6 +279,22 @@ def _parse_cli_options():
     parser.add_argument("-t", "--toolsfile",
                         dest="tool_list_file",
                         help="Tools file to use (see tool_list.yaml.sample)",)
+    parser.add_argument("--name",
+                        help="The name of the tool to install (only applicable "
+                             "if the tools file is not provided).")
+    parser.add_argument("--owner",
+                        help="The owner of the tool to install (only applicable "
+                             "if the tools file is not provided).")
+    parser.add_argument("--section",
+                        dest="tool_panel_section_id",
+                        help="Galaxy tool panel section ID where the tool will "
+                             "be installed (the section must exist in Galaxy; "
+                             "only applicable if the tools file is not provided).")
+    parser.add_argument("--toolshed",
+                        dest="tool_shed_url",
+                        help="The Tool Shed URL where to install the tool from. "
+                             "This is applicable only if the tool info is "
+                             "provided as an option vs. in the tools file.")
     return parser.parse_args()
 
 
@@ -401,10 +420,19 @@ def install_tools(options):
     """
     istart = dt.datetime.now()
     tool_list_file = options.tool_list_file
-    tl = load_input_file(tool_list_file)  # Input file contents
-    tools_info = tl['tools']  # The list of tools to install
-    galaxy_url = options.galaxy_url or tl['galaxy_instance']
-    api_key = options.api_key or tl['api_key']
+    if tool_list_file:
+        tl = load_input_file(tool_list_file)  # Input file contents
+        tools_info = tl['tools']  # The list of tools to install
+    else:
+        # An individual tool was specified on the command line
+        tools_info = [{"owner": options.owner,
+                       "name": options.name,
+                       "tool_panel_section_id": options.tool_panel_section_id,
+                       "tool_shed_url": options.tool_shed_url or MTS}]
+    print "tools_info: %s" % tools_info
+    return
+    galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
+    api_key = options.api_key or tl.get('api_key')
     gi = galaxy_instance(galaxy_url, api_key)
     tsc = tool_shed_client(gi)
     itl = installed_revisions(tsc)  # installed tools list
@@ -443,7 +471,7 @@ def install_tools(options):
         tool['install_repository_dependencies'] = \
             tool_info.get('install_repository_dependencies', True)
         tool['tool_shed_url'] = \
-            tool_info.get('tool_shed_url', 'https://toolshed.g2.bx.psu.edu/')
+            tool_info.get('tool_shed_url', MTS)
         ts = ToolShedInstance(url=tool['tool_shed_url'])
         # Get the set revision or set it to the latest installable revision
         tool['revision'] = tool_info.get('revision', ts.repositories.
@@ -519,9 +547,11 @@ if __name__ == "__main__":
     global log
     log = _setup_global_logger()
     options = _parse_cli_options()
-    if options.tool_list_file:
+    if options.tool_list_file or (options.name and options.owner and
+       options.tool_panel_section_id):
         install_tools(options)
     # elif options.dbkeys_list_file:
     #     run_data_managers(options)
     else:
-        log.error("Must provide the tool list file. Look at usage.")
+        log.error("Must provide the tool list file or individual tools info; "
+                  "look at usage.")
