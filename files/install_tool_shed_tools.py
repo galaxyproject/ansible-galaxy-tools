@@ -429,8 +429,6 @@ def install_tools(options):
                        "name": options.name,
                        "tool_panel_section_id": options.tool_panel_section_id,
                        "tool_shed_url": options.tool_shed_url or MTS}]
-    print "tools_info: %s" % tools_info
-    return
     galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
     gi = galaxy_instance(galaxy_url, api_key)
