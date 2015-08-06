@@ -25,7 +25,7 @@ import datetime as dt
 import logging
 import time
 import yaml
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.toolshed import ToolShedClient
@@ -258,28 +258,25 @@ def _list_tool_categories(tl):
 
 def _parse_cli_options():
     """
-    Parse command line options, returning `options` from `OptionParser`
+    Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
-    parser = OptionParser(usage="usage: python %prog <options>")
-    parser.add_option("-t", "--toolsfile",
-                      dest="tool_list_file",
-                      default=None,
-                      help="Tools file to use (see tool_list.yaml.sample)",)
-    parser.add_option("-d", "--dbkeysfile",
-                      dest="dbkeys_list_file",
-                      default=None,
-                      help="Reference genome dbkeys to install (see "
-                           "dbkeys_list.yaml.sample)",)
-    parser.add_option("-a", "--apikey",
-                      dest="api_key",
-                      default=None,
-                      help="Galaxy admin user API key",)
-    parser.add_option("-g", "--galaxy",
-                      dest="galaxy_url",
-                      default=None,
-                      help="URL for the Galaxy instance",)
-    (options, args) = parser.parse_args()
-    return options
+    parser = ArgumentParser(usage="usage: python %(prog)s <options>")
+    # parser.add_argument("-d", "--dbkeysfile",
+    #                     dest="dbkeys_list_file",
+    #                     help="Reference genome dbkeys to install (see "
+    #                          "dbkeys_list.yaml.sample)",)
+    parser.add_argument("-g", "--galaxy",
+                        dest="galaxy_url",
+                        help="Target Galaxy instance URL/IP address (required "
+                             "if not defined in the tools list file)",)
+    parser.add_argument("-a", "--apikey",
+                        dest="api_key",
+                        help="Galaxy admin user API key (required if not "
+                             "defined in the tools list file)",)
+    parser.add_argument("-t", "--toolsfile",
+                        dest="tool_list_file",
+                        help="Tools file to use (see tool_list.yaml.sample)",)
+    return parser.parse_args()
 
 
 def _flatten_tools_info(tools_info):
@@ -524,7 +521,7 @@ if __name__ == "__main__":
     options = _parse_cli_options()
     if options.tool_list_file:
         install_tools(options)
-    elif options.dbkeys_list_file:
-        run_data_managers(options)
+    # elif options.dbkeys_list_file:
+    #     run_data_managers(options)
     else:
-        log.error("Must provide tool list file or dbkeys list file. Look at usage.")
+        log.error("Must provide the tool list file. Look at usage.")
