@@ -34,24 +34,22 @@ given part of the role should be executed:
 
 Example playbook
 ----------------
-To use the role, create a `hosts` file that contains access information
-for the target machine, for example:
+To use the role, create a playbook like the one below. Set any variables
+(remember, `api_key` is required) and save the playbook as `tools.yml`. This
+playbook assumes the role has been placed into `roles/tools` directory:
 
-    [toolsinstallinghosts]
-    130.56.250.204 ansible_ssh_private_key_file=key.pem ansible_ssh_user=ubuntu
-
-Next, set any variables as desired and place the role into a playbook file
-(e.g., `tools.yml`). This playbook assumes the role has been placed into
-`roles/tools` directory:
-
-    - hosts: toolsinstallinghosts
-      remote_user: ubuntu
-       vars:
-            galaxy_instance_url: http://54.158.48.0/
-            api_key: d0ca91a20a67ec0d48612ac920ebdf59
-       roles:
-            - tools
+    - hosts: localhost
+      connection: local
+      vars:
+          galaxy_instance_url: http://54.158.48.0/
+          api_key: d0ca91a20a67ec0d48612ac920ebdf59
+      roles:
+          - tools
 
 Finally, run the playbook with:
 
     $ ansible-playbook tools.yml -i hosts
+
+Note that a virtualenv will be created as part of the script execution. By
+default, it will be places in `/tmp` dir. The log file with the tool execution
+progress is available in `/tmp/galaxy_tool_install.log`.
