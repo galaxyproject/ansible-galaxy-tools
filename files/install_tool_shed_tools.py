@@ -438,6 +438,7 @@ def install_tools(options):
     responses = []
     errored_tools = []
     skipped_tools = []
+    installed_tools = []
     counter = 0
     tools_info = _flatten_tools_info(tools_info)
     total_num_tools = len(tools_info)
@@ -513,6 +514,8 @@ def install_tools(options):
                         time.sleep(10)
                         tool_status = update_tool_status(tsc, tool_id)
                     end = dt.datetime.now()
+                    installed_tools.append({'name': tool['name'], 'owner': tool['owner'],
+                                            'revision': tool['revision']})
                     log.debug("\tTool %s installed successfully (in %s) at revision %s"
                               % (tool['name'], str(end - start), tool['revision']))
                 else:
@@ -534,6 +537,8 @@ def install_tools(options):
             outcome = {'tool': tool, 'response': response, 'duration': str(end - start)}
             responses.append(outcome)
 
+    log.info("Installed tools ({0}): {1}".format(
+             len(installed_tools), [(t['name'], t['revision']) for t in installed_tools]))
     log.info("Skipped tools ({0}): {1}".format(
              len(skipped_tools), [(t['name'], t['revision']) for t in skipped_tools]))
     log.info("Errored tools ({0}): {1}".format(
