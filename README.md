@@ -16,14 +16,17 @@ None
 Role variables
 --------------
 ### Required variables ###
-- `galaxy_tools_api_key`: the Galaxy API key for an admin user on the target Galaxy instance
+- `galaxy_tools_api_key`: the Galaxy API key for an admin user on the target
+  Galaxy instance
 
 ### Optional variables ###
-- `galaxy_tools_instance_url`: (default `127.0.0.1:8080`) a URL or an IP address for
-  the Galaxy instance where the tools are to be installed
+- `galaxy_tools_instance_url`: (default `127.0.0.1:8080`) a URL or an IP address
+  for the Galaxy instance where the tools are to be installed
 - `galaxy_tools_tool_list_file`: (default `files/tool_list.yaml`) the file
-  containing all the tools to be installed
-- `galaxy_tools_base_dir`: (default: `/tmp`) the system path from where this role will be run
+  containing all the tools to be installed. See `files/tool_list.yaml.sample`
+  file for more about the format requirements of this file.
+- `galaxy_tools_base_dir`: (default: `/tmp`) the system path from where this
+  role will be run
 
 ### Control flow variables ###
 The following variables can be set to either `yes` or `no` to indicate if the
@@ -52,5 +55,5 @@ Finally, run the playbook with:
     $ ansible-playbook tools.yml -i hosts
 
 Note that a virtualenv will be created as part of the script execution. By
-default, it will be places in `/tmp` dir. The log file with the tool execution
+default, it will be placed in `/tmp` dir. The log file with the tool execution
 progress is available in `/tmp/galaxy_tool_install.log`.
