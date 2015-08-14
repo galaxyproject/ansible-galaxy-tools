@@ -255,7 +255,7 @@ def _list_tool_categories(tl):
     """
     category_list = []
     for t in tl:
-        category_list.append(t.get('tool_panel_section_id'))
+        category_list.append(t.get('id'))
     return set(category_list)
 
 
