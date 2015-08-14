@@ -1,7 +1,47 @@
 ---
 
 galaxy_tools_install_tools: yes
+galaxy_tools_create_bootstrap_user: no
+galaxy_tools_delete_bootstrap_user: no
 
-galaxy_tools_instance_url: 127.0.0.1:8080
+# A URL or an IP address for the Galaxy instance where the tools are to be
+# installed
+galaxy_tools_galaxy_instance_url: 127.0.0.1:8080
+
+# A file containing all the tools to be installed. See `files/tool_list.yaml.sample`
+# file for more about the format requirements of this file.
 galaxy_tools_tool_list_file: tool_list.yaml
+
+# A system path from where this role will be run
 galaxy_tools_base_dir: /tmp
+
+# Blank variable to make sure it's defined
+galaxy_tools_api_key: ''
+
+
+## Variables below are used only if the galaxy_install_bootstrap_user var is set
+
+# An email address with which the Galaxy bootstrap user will be created
+galaxy_tools_admin_user: cloud@galaxyproject.org
+
+# Name of Galaxy's PID file
+galaxy_tools_pid_file_name: main.pid
+
+# Name of Galaxy's log file
+galaxy_tools_log_file_name: main.log
+
+
+## Below variable names are used in several other roles that compose Galaxy's
+## playbooks and are hence scoped differently
+
+# User name for the system galaxy user
+galaxy_user_name: galaxy
+
+# A path where Galaxy is installed
+galaxy_server_dir: /mnt/galaxy/galaxy-app
+
+# A system path where a virtualend for Galaxy is installed
+galaxy_venv_dir: "{{ galaxy_server_dir }}/.venv"
+
+# A system path for Galaxy's main configuration file
+galaxy_config_file: "{{ galaxy_server_dir }}/config/galaxy.ini"
