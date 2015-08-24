@@ -152,6 +152,9 @@ def installed_tool_revisions(gi=None):
     :rtype: list of dicts
     :return: Each dict in the returned list will have the following keys:
              `name`, `owner`, `tool_shed_url`, `revisions`.
+
+    .. seealso:: this method returns a subset of data returned by
+                 `installed_tools` function
     """
     tsc = tool_shed_client(gi)
     installed_revisions_list = []
@@ -162,7 +165,7 @@ def installed_tool_revisions(gi=None):
             # revision to the existing list entry
             already_in_the_list = False
             for ir in installed_revisions_list:
-                if it['name'] == ir['name'] and it['owner'] == ir['owner']:
+                if the_same_tool(it, ir):
                     ir['revisions'].append(it.get('changeset_revision', None))
                     already_in_the_list = True
             # We have not processed this tool so create a list entry
@@ -175,55 +178,12 @@ def installed_tool_revisions(gi=None):
     return installed_revisions_list
 
 
-def update_tool_status(tool_shed_client, tool_id):
+def installed_tools(gi):
     """
-    Given a `tool_shed_client` handle and and Tool Shed `tool_id`, return the
-    installation status of the tool.
-    """
-    try:
-        r = tool_shed_client.show_repository(tool_id)
-        return r.get('status', 'NA')
-    except Exception, e:
-        log.warning('\tException checking tool {0} status: {1}'.format(tool_id, e))
-        return 'NA'
+    Get a list of tools installed on a given Galaxy instance, `gi`.
 
-
-def _tools_to_install(owners=['devteam', 'iuc'], return_formatted=False):
-    """
-    This is mostly a convenience method to jumpstart the tools list.
-
-    Get a list of tools that should be installed. This list is composed by
-    including all the non-package tools that are owned by `owners` from the Main
-    Tool Shed.
-    If `return_formatted` is set, return a list of dicts that have been formatted
-    according to the required input file for installing tools (see other methods).
-
-    *Note*: there is no way to programatically get a category a tool belongs in
-    a Tool Shed so the returned list cannot simply be used as the input file but
-    (manual!?!) adjustment is necessesary to provide tool category for each tool.
-    """
-    tsi = ToolShedInstance(MTS)
-    repos = tsi.repositories.get_repositories()
-    tti = []  # tools to install
-    for repo in repos:
-        if repo['owner'] in owners and 'package' not in repo['name']:
-            if return_formatted:
-                repo = {'name': repo['name'], 'owner': repo['owner'],
-                        'tool_shed_url': MTS,
-                        'tool_panel_section_id': ''}
-            tti.append(repo)
-    return tti
-
-
-def parse_tool_list(gi):
-    """
-    A convenience method for parsing the output from an API call to a Galaxy
-    instance listing all the tools installed on the given instance and
-    formatting it for use by functions in this file.
-
-    Sample GET call: `https://test.galaxyproject.org/api/tools?in_panel=true`.
-    Via the API, call `gi.tools.get_tool_panel()` to get the list of tools on
-    a given Galaxy instance `gi`.
+    The list of tools is formatted for consumption by other functions in this
+    file.
 
     :type tl: GalaxyInstance object
     :param tl: A GalaxyInstance object as retured by `galaxy_instance` method.
@@ -243,6 +203,8 @@ def parse_tool_list(gi):
                 two lists (`shed_tools` and `tool_panel_shed_tools`) are likely
                 to be different and hence not every element in the `shed_tools`
                 will have the `tool_panel_section_id`!
+
+    .. seealso:: `installed_tool_revisions`
     """
     tp_tools = []  # Tools available in the tool panel and installe via a TS
     custom_tools = []  # Tools available in the tool panel but custom-installed
@@ -250,10 +212,11 @@ def parse_tool_list(gi):
     tl = gi.tools.get_tool_panel()  # In-panel tool list
     for ts in tl:  # ts -> tool section
         # print "%s (%s): %s" % (ts['name'], ts['id'], len(ts.get('elems', [])))
+        # Parse the tool panel to ge the the tool lists
         for t in ts.get('elems', []):
             # Tool ID is either a tool name (in case of custom-installed tools)
             # or a URI (in case of Tool Shed-installed tools) so differentiate
-            # among those and pick out only the ones installed via the TS
+            # among those
             tid = t['id'].split('/')
             if len(tid) > 3:
                 tool_already_added = False
@@ -275,7 +238,7 @@ def parse_tool_list(gi):
     ts_tools = installed_tool_revisions(gi)  # Tools revisions installed via a TS
     for it in ts_tools:
         for t in tp_tools:
-            if it['name'] == t['name'] and it['owner'] == t['owner']:
+            if the_same_tool(it, t):
                 it['tool_panel_section_id'] = t['tool_panel_section_id']
 
     return {'tool_panel_shed_tools': tp_tools,
@@ -285,7 +248,7 @@ def parse_tool_list(gi):
 
 def _list_tool_categories(tl):
     """
-    Given a list of dicts `tl` as returned by the `parse_tool_list` method and
+    Given a list of dicts `tl` as returned by the `installed_tools` method and
     where each list element holds a key `tool_panel_section_id`, return a list
     of unique section IDs.
     """
@@ -376,6 +339,19 @@ def _flatten_tools_info(tools_info):
         else:  # Revision was not defined at all
             flattened_list.append(tool_info)
     return flattened_list
+
+
+def update_tool_status(tool_shed_client, tool_id):
+    """
+    Given a `tool_shed_client` handle and and Tool Shed `tool_id`, return the
+    installation status of the tool.
+    """
+    try:
+        r = tool_shed_client.show_repository(tool_id)
+        return r.get('status', 'NA')
+    except Exception, e:
+        log.warning('\tException checking tool {0} status: {1}'.format(tool_id, e))
+        return 'NA'
 
 
 def run_data_managers(options):
