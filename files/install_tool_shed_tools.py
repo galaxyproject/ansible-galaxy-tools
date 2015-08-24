@@ -169,11 +169,8 @@ def installed_tool_revisions(gi=None):
             if not already_in_the_list:
                 ti = {'name': it['name'],
                       'owner': it['owner'],
-                      'revisions': [it.get('changeset_revision', None)]}
-                # For brevity, don't store Main Tool Shed URL; it's the assumed
-                # default during tool installation
-                if it['tool_shed'] != 'toolshed.g2.bx.psu.edu':
-                    ti['tool_shed_url'] = 'https://' + it['tool_shed']
+                      'revisions': [it.get('changeset_revision', None)],
+                      'tool_shed_url': 'https://' + it['tool_shed']}
                 installed_revisions_list.append(ti)
     return installed_revisions_list
 
@@ -218,7 +215,7 @@ def _tools_to_install(owners=['devteam', 'iuc'], return_formatted=False):
     return tti
 
 
-def parse_tool_list(tl):
+def parse_tool_list(gi):
     """
     A convenience method for parsing the output from an API call to a Galaxy
     instance listing all the tools installed on the given instance and
@@ -228,31 +225,43 @@ def parse_tool_list(tl):
     Via the API, call `gi.tools.get_tool_panel()` to get the list of tools on
     a given Galaxy instance `gi`.
 
-    :type tl: list
-    :param tl: A list of dicts with info about the tools
+    :type tl: GalaxyInstance object
+    :param tl: A GalaxyInstance object as retured by `galaxy_instance` method.
 
-    :rtype: tuple of lists
-    :return: The returned tuple contains two lists: the first one being a list
-             of tools that were installed on the target Galaxy instance from
-             the Tool Shed and the second one being a list of custom-installed
-             tools. The ToolShed-list is YAML-formatted.
-
-    Note that this method is rather coarse and likely to need some handholding.
+    :rtype: dict
+    :return: The returned dictionary contains the following lists, each
+             containing a list of dictionaries:
+                - `tool_panel_shed_tools` with a list of tools available in the
+                tool panel that were installed on the target Galaxy instance
+                from the Tool Shed;
+                - `tool_panel_custom_tools` with a list of tools available in
+                the tool panel that were not installed via the Tool Shed;
+                - `shed_tools` with a list of tools returned from the
+                `installed_tool_revisions` function and complemented with a
+                `tool_panel_section_id` key as matched with the list of tools
+                from the first element of the returned triplet. Note that the
+                two lists (`shed_tools` and `tool_panel_shed_tools`) are likely
+                to be different and hence not every element in the `shed_tools`
+                will have the `tool_panel_section_id`!
     """
-    ts_tools = []
-    custom_tools = []
+    tp_tools = []  # Tools available in the tool panel and installe via a TS
+    custom_tools = []  # Tools available in the tool panel but custom-installed
 
-    for ts in tl:
+    tl = gi.tools.get_tool_panel()  # In-panel tool list
+    for ts in tl:  # ts -> tool section
         # print "%s (%s): %s" % (ts['name'], ts['id'], len(ts.get('elems', [])))
         for t in ts.get('elems', []):
+            # Tool ID is either a tool name (in case of custom-installed tools)
+            # or a URI (in case of Tool Shed-installed tools) so differentiate
+            # among those and pick out only the ones installed via the TS
             tid = t['id'].split('/')
             if len(tid) > 3:
                 tool_already_added = False
-                for added_tool in ts_tools:
+                for added_tool in tp_tools:
                     if tid[3] in added_tool['name']:
                         tool_already_added = True
                 if not tool_already_added:
-                    ts_tools.append({'tool_shed_url': "https://{0}".format(tid[0]),
+                    tp_tools.append({'tool_shed_url': "https://{0}".format(tid[0]),
                                      'owner': tid[2],
                                      'name': tid[3],
                                      'tool_panel_section_id': ts['id']})
@@ -260,7 +269,18 @@ def parse_tool_list(tl):
             else:
                 # print "\t%s" % t['id']
                 custom_tools.append(t['id'])
-    return ts_tools, custom_tools
+
+    # Match tp_tools with the tool list available from the Tool Shed Clients on
+    # the given Galaxy instance and and add tool section IDs it
+    ts_tools = installed_tool_revisions(gi)  # Tools revisions installed via a TS
+    for it in ts_tools:
+        for t in tp_tools:
+            if it['name'] == t['name'] and it['owner'] == t['owner']:
+                it['tool_panel_section_id'] = t['tool_panel_section_id']
+
+    return {'tool_panel_shed_tools': tp_tools,
+            'tool_panel_custom_tools': custom_tools,
+            'shed_tools': ts_tools}
 
 
 def _list_tool_categories(tl):
@@ -449,7 +469,7 @@ def install_tools(options):
     api_key = options.api_key or tl.get('api_key')
     gi = galaxy_instance(galaxy_url, api_key)
     tsc = tool_shed_client(gi)
-    itl = installed_tool_revisions(tsc)  # installed tools list
+    itl = installed_tool_revisions(gi)  # installed tools list
 
     responses = []
     errored_tools = []
