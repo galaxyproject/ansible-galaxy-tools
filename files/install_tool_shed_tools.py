@@ -92,6 +92,14 @@ def load_input_file(tool_list_file='tool_list.yaml'):
     return tl
 
 
+def dump_to_yaml_file(content, file_name):
+    """
+    Dump YAML-compatible `content` to `file_name`.
+    """
+    with open(file_name, 'w') as f:
+        yaml.dump(content, f, default_flow_style=False)
+
+
 def galaxy_instance(url=None, api_key=None):
     """
     Get an instance of the `GalaxyInstance` object. If the arguments are not
@@ -133,32 +141,40 @@ def the_same_tool(tool_1_info, tool_2_info):
     return False
 
 
-def installed_revisions(tsc=None):
+def installed_tool_revisions(gi=None):
     """
-    Return a list of tool revisions installed on the Galaxy instance via the Tool
-    Shed client `tsc`. If the `tsc` is not specified, use the default one by
-    calling `tool_shed_client` method.
+    Return a list of tool revisions installed on a Galaxy instance `gi`.
+
+    Included are all the tool revisions that were installed from a Tool
+    Shed and are available from `/api/tool_shed_repositories` url on the
+    given instance of Galaxy.
 
     :rtype: list of dicts
     :return: Each dict in the returned list will have the following keys:
-             `name`, `owner`, `tool_shed`, `revision`, and `latest` (the value
-             for this key will be `True` if the installed revision is the
-             `latest_installable_revision`).
+             `name`, `owner`, `tool_shed_url`, `revisions`.
     """
-    if not tsc:
-        tsc = tool_shed_client()
+    tsc = tool_shed_client(gi)
     installed_revisions_list = []
     itl = tsc.get_repositories()
     for it in itl:
-        latest = None
-        if it.get('tool_shed_status', None):
-            latest = it['tool_shed_status'].get('latest_installable_revision', None)
         if it['status'] == 'Installed':
-            installed_revisions_list.append({'name': it['name'],
-                                             'owner': it['owner'],
-                                             'tool_shed': it['tool_shed'],
-                                             'revision': it.get('changeset_revision', None),
-                                             'latest': latest})
+            # Check if we already processed this tool and, if so, add the new
+            # revision to the existing list entry
+            already_in_the_list = False
+            for ir in installed_revisions_list:
+                if it['name'] == ir['name'] and it['owner'] == ir['owner']:
+                    ir['revisions'].append(it.get('changeset_revision', None))
+                    already_in_the_list = True
+            # We have not processed this tool so create a list entry
+            if not already_in_the_list:
+                ti = {'name': it['name'],
+                      'owner': it['owner'],
+                      'revisions': [it.get('changeset_revision', None)]}
+                # For brevity, don't store Main Tool Shed URL; it's the assumed
+                # default during tool installation
+                if it['tool_shed'] != 'toolshed.g2.bx.psu.edu':
+                    ti['tool_shed_url'] = 'https://' + it['tool_shed']
+                installed_revisions_list.append(ti)
     return installed_revisions_list
 
 
@@ -433,7 +449,7 @@ def install_tools(options):
     api_key = options.api_key or tl.get('api_key')
     gi = galaxy_instance(galaxy_url, api_key)
     tsc = tool_shed_client(gi)
-    itl = installed_revisions(tsc)  # installed tools list
+    itl = installed_tool_revisions(tsc)  # installed tools list
 
     responses = []
     errored_tools = []
@@ -478,11 +494,9 @@ def install_tools(options):
                                          (tool['name'], tool['owner'])[-1])
         # Check if the tool@revision is already installed
         for installed in itl:
-            if the_same_tool(installed, tool) and installed['revision'] == tool['revision']:
-                log.debug("({0}/{1}) Tool {2} already installed at revision {3} "
-                          "(Is latest? {4}). Skipping..."
-                          .format(counter, total_num_tools, tool['name'],
-                                  tool['revision'], installed['latest']))
+            if the_same_tool(installed, tool) and tool['revision'] in installed['revisions']:
+                log.debug("({0}/{1}) Tool {2} already installed at revision {3}. Skipping."
+                          .format(counter, total_num_tools, tool['name'], tool['revision']))
                 skipped_tools.append({'name': tool['name'], 'owner': tool['owner'],
                                       'revision': tool['revision']})
                 already_installed = True
