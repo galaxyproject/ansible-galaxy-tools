@@ -141,13 +141,20 @@ def the_same_tool(tool_1_info, tool_2_info):
     return False
 
 
-def installed_tool_revisions(gi=None):
+def installed_tool_revisions(gi=None, omit=None):
     """
-    Return a list of tool revisions installed on a Galaxy instance `gi`.
+    Get a list of tool revisions installed from a Tool Shed on a Galaxy instance.
 
     Included are all the tool revisions that were installed from a Tool
     Shed and are available from `/api/tool_shed_repositories` url on the
     given instance of Galaxy.
+
+    :type gi: GalaxyInstance object
+    :param gi: A GalaxyInstance object as retured by `galaxy_instance` method.
+
+    :type omit: list of strings
+    :param omit: A list of strings that, if found in a tool name, will result
+                    in the tool not being included in the returned list.
 
     :rtype: list of dicts
     :return: Each dict in the returned list will have the following keys:
@@ -156,20 +163,26 @@ def installed_tool_revisions(gi=None):
     .. seealso:: this method returns a subset of data returned by
                  `installed_tools` function
     """
+    if not omit:
+        omit = []
     tsc = tool_shed_client(gi)
     installed_revisions_list = []
     itl = tsc.get_repositories()
     for it in itl:
         if it['status'] == 'Installed':
+            skip = False
             # Check if we already processed this tool and, if so, add the new
             # revision to the existing list entry
-            already_in_the_list = False
             for ir in installed_revisions_list:
                 if the_same_tool(it, ir):
                     ir['revisions'].append(it.get('changeset_revision', None))
-                    already_in_the_list = True
+                    skip = True
+            # Check if the repo name is contained in the 'omit' list
+            for o in omit:
+                if o in it['name']:
+                    skip = True
             # We have not processed this tool so create a list entry
-            if not already_in_the_list:
+            if not skip:
                 ti = {'name': it['name'],
                       'owner': it['owner'],
                       'revisions': [it.get('changeset_revision', None)],
@@ -178,18 +191,19 @@ def installed_tool_revisions(gi=None):
     return installed_revisions_list
 
 
-def installed_tools(gi):
+def installed_tools(gi, omit=None):
     """
-    Get a list of tools installed on a given Galaxy instance, `gi`.
+    Get a list of tools on a Galaxy instance.
 
-    The list of tools is formatted for consumption by other functions in this
-    file.
+    :type gi: GalaxyInstance object
+    :param gi: A GalaxyInstance object as retured by `galaxy_instance` method.
 
-    :type tl: GalaxyInstance object
-    :param tl: A GalaxyInstance object as retured by `galaxy_instance` method.
+    :type omit: list of strings
+    :param omit: A list of strings that, if found in a tool name, will result
+                    in the tool not being included in the returned list.
 
     :rtype: dict
-    :return: The returned dictionary contains the following lists, each
+    :return: The returned dictionary contains the following keys, each
              containing a list of dictionaries:
                 - `tool_panel_shed_tools` with a list of tools available in the
                 tool panel that were installed on the target Galaxy instance
@@ -204,8 +218,12 @@ def installed_tools(gi):
                 to be different and hence not every element in the `shed_tools`
                 will have the `tool_panel_section_id`!
 
-    .. seealso:: `installed_tool_revisions`
+    .. seealso:: `installed_tool_revisions` (this function also returns the
+                 output of the `installed_tool_revisions` function, as
+                 `shed_tools` key).
     """
+    if not omit:
+        omit = []
     tp_tools = []  # Tools available in the tool panel and installe via a TS
     custom_tools = []  # Tools available in the tool panel but custom-installed
 
@@ -219,11 +237,16 @@ def installed_tools(gi):
             # among those
             tid = t['id'].split('/')
             if len(tid) > 3:
-                tool_already_added = False
+                skip = False
+                # Check if we already encountered this tool
                 for added_tool in tp_tools:
                     if tid[3] in added_tool['name']:
-                        tool_already_added = True
-                if not tool_already_added:
+                        skip = True
+                # Check if the repo name is contained in the 'omit' list
+                for o in omit:
+                    if o in tid[3]:
+                        skip = True
+                if not skip:
                     tp_tools.append({'tool_shed_url': "https://{0}".format(tid[0]),
                                      'owner': tid[2],
                                      'name': tid[3],
@@ -235,7 +258,7 @@ def installed_tools(gi):
 
     # Match tp_tools with the tool list available from the Tool Shed Clients on
     # the given Galaxy instance and and add tool section IDs it
-    ts_tools = installed_tool_revisions(gi)  # Tools revisions installed via a TS
+    ts_tools = installed_tool_revisions(gi, omit)  # Tools revisions installed via a TS
     for it in ts_tools:
         for t in tp_tools:
             if the_same_tool(it, t):
