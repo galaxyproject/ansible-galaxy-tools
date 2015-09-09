@@ -1,0 +1,10 @@
+---
+
+- name: Delete Galaxy bootstrap user
+  command: chdir={{ galaxy_server_dir }} {{ galaxy_venv_dir }}/bin/python manage_bootstrap_user.py -c {{ galaxy_config_file }} delete
+  when: galaxy_tools_delete_bootstrap_user
+
+- include: restart_galaxy.yml
+
+- name: Remove the bootstrap user management script
+  file: dest={{ galaxy_server_dir }}/manage_bootstrap_user.py state=absent
