@@ -1,10 +1,10 @@
 ---
 
-- include: bootstrap_user.yml
+- include: bootstrap_user.yml create_user=galaxy_tools_create_bootstrap_user
   when: galaxy_tools_create_bootstrap_user and not galaxy_tools_api_key
 
 - include: tools.yml
   when: galaxy_tools_install_tools
 
-- include: bootstrap_user.yml
-  when: galaxy_tools_delete_bootstrap_user and not galaxy_tools_api_key
+- include: bootstrap_user.yml delete_user=galaxy_tools_delete_bootstrap_user
+  when: galaxy_tools_delete_bootstrap_user
