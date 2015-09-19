@@ -18,6 +18,8 @@ galaxy_tools_base_dir: /tmp
 # Blank variable to make sure it's defined
 galaxy_tools_api_key: ''
 
+# Whether to ignore tool installation errors or not
+galaxy_ignore_tool_errors: no
 
 ## Variables below are used only if the galaxy_install_bootstrap_user var is set
 
