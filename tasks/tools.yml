@@ -9,15 +9,17 @@
 - name: Place the tool management script
   copy: src=install_tool_shed_tools.py dest={{ galaxy_tools_base_dir }}/install_tool_shed_tools.py
 
-- name: Copy tool list file
-  copy: src={{ galaxy_tools_tool_list_file }} dest={{ galaxy_tools_base_dir }}/tool_list.yaml
+- name: Copy tool list files
+  copy: src={{ item }} dest={{ galaxy_tools_base_dir }}/{{ item|basename }}
+  with_items: galaxy_tools_tool_list_files
 
 - name: Install Tool Shed tools
-  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -t tool_list.yaml -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
-  ignore_errors: "{{ galaxy_ignore_tool_errors }}"
+  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -t {{ item|basename }} -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
+  with_items: galaxy_tools_tool_list_files
 
-- name: Remove tool management scripts/file
-  file: dest={{ galaxy_tools_base_dir }}/{{ item }} state=absent
-  with_items:
-    - install_tool_shed_tools.py
-    - tool_list.yaml
+- name: Remove tool list files
+  file: dest={{ galaxy_tools_base_dir }}/{{ item|basename }} state=absent
+  with_items: galaxy_tools_tool_list_files
+
+- name: Remove tool management script
+  file: dest={{ galaxy_tools_base_dir }}/install_tool_shed_tools.py state=absent
