@@ -489,6 +489,7 @@ def install_tools(options):
         tool['name'] = tool_info.get('name', None)
         tool['owner'] = tool_info.get('owner', None)
         tool['tool_panel_section_id'] = tool_info.get('tool_panel_section_id', None)
+        tool['tool_panel_section_label'] = tool_info.get('tool_panel_section_label', None)
         # Check if all required tool sections have been provided; if not, skip
         # the installation of this tool. Note that data managers are an exception
         # but they must contain string `data_manager` within the tool name.
@@ -533,7 +534,8 @@ def install_tools(options):
                     tool['tool_shed_url'], tool['name'], tool['owner'],
                     tool['revision'], tool['install_tool_dependencies'],
                     tool['install_repository_dependencies'],
-                    tool['tool_panel_section_id'])
+                    tool['tool_panel_section_id'],
+                    tool['tool_panel_section_label'])
                 tool_id = None
                 tool_status = None
                 if len(response) > 0:
