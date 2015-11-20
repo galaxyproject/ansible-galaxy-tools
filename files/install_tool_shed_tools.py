@@ -492,11 +492,13 @@ def install_tools(options):
         # Check if all required tool sections have been provided; if not, skip
         # the installation of this tool. Note that data managers are an exception
         # but they must contain string `data_manager` within the tool name.
-        if not tool['name'] or not tool['owner'] or (not tool['tool_panel_section_id']
+        if not tool['name'] or not tool['owner'] or (not (tool['tool_panel_section_id']
+                                                          or tool['tool_panel_section_label'])
                                                      and 'data_manager' not in tool.get('name', '')):
             log.error("Missing required tool info field; skipping [name: '{0}'; "
-                      "owner: '{1}'; tool_panel_section_id: '{2}']"
-                      .format(tool['name'], tool['owner'], tool['tool_panel_section_id']))
+                      "owner: '{1}'; tool_panel_section_id: '{2}']; tool_panel_section_label: '{3}'"
+                      .format(tool['name'], tool['owner'], tool['tool_panel_section_id'],
+                              tool['tool_panel_section_label']))
             continue
         # Populate fields that can optionally be provided (if not provided, set
         # defaults).
