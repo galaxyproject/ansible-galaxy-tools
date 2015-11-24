@@ -526,11 +526,11 @@ def install_tools(options):
         if not already_installed:
             # Initate tool installation
             start = dt.datetime.now()
-            log.debug('(%s/%s) Installing tool %s from %s to section %s at '
+            log.debug('(%s/%s) Installing tool %s from %s to section "%s" at '
                       'revision %s (TRT: %s)' %
                       (counter, total_num_tools, tool['name'], tool['owner'],
-                       tool['tool_panel_section_id'], tool['revision'],
-                       dt.datetime.now() - istart))
+                       tool['tool_panel_section_id'] or tool['tool_panel_section_label'],
+                       tool['revision'], dt.datetime.now() - istart))
             try:
                 response = tsc.install_repository_revision(
                     tool['tool_shed_url'], tool['name'], tool['owner'],
