@@ -286,10 +286,10 @@ def _parse_cli_options():
     Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
     parser = ArgumentParser(usage="usage: python %(prog)s <options>")
-    # parser.add_argument("-d", "--dbkeysfile",
-    #                     dest="dbkeys_list_file",
-    #                     help="Reference genome dbkeys to install (see "
-    #                          "dbkeys_list.yaml.sample)",)
+    parser.add_argument("-d", "--dbkeysfile",
+                        dest="dbkeys_list_file",
+                        help="Reference genome dbkeys to install (see "
+                             "dbkeys_list.yaml.sample)",)
     parser.add_argument("-g", "--galaxy",
                         dest="galaxy_url",
                         help="Target Galaxy instance URL/IP address (required "
@@ -590,8 +590,8 @@ if __name__ == "__main__":
     if options.tool_list_file or (options.name and options.owner and
        options.tool_panel_section_id):
         install_tools(options)
-    # elif options.dbkeys_list_file:
-    #     run_data_managers(options)
+    elif options.dbkeys_list_file:
+       run_data_managers(options)
     else:
         log.error("Must provide the tool list file or individual tools info; "
                   "look at usage.")
