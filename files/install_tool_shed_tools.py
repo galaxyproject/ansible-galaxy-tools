@@ -543,11 +543,13 @@ def install_tools(options):
                 if len(response) > 0 and isinstance(response, list):
                     tool_status = response[0].get('status', None)
                     tool_id = response[0].get('id', None)
-                elif isinstance(response, dict) and response.get('status', 'None') == 'ok':
-                    # This rare case happens if a tool is already installed but was not recognised as such
-                    # in the above check. In such a case the return value looks like this:
-                    # {u'status': u'ok', u'message': u'No repositories were installed, possibly because the selected repository has already been installed.'}
-                    tool_id = False
+                elif isinstance(response, dict) and response.get('status', None) == 'ok':
+                    # This rare case happens if a tool is already installed but
+                    # was not recognised as such in the above check. In such a
+                    # case the return value looks like this:
+                    # {u'status': u'ok', u'message': u'No repositories were
+                    #  installed, possibly because the selected repository has
+                    #  already been installed.'}
                     log.debug("\tTool {0} is already installed.".format(tool['name']))
                 if tool_id and tool_status:
                     # Possibly an infinite loop here. Introduce a kick-out counter?
@@ -597,7 +599,7 @@ if __name__ == "__main__":
        options.tool_panel_section_id):
         install_tools(options)
     elif options.dbkeys_list_file:
-       run_data_managers(options)
+        run_data_managers(options)
     else:
         log.error("Must provide the tool list file or individual tools info; "
                   "look at usage.")
