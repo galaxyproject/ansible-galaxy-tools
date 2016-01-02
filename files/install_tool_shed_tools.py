@@ -540,9 +540,15 @@ def install_tools(options):
                     tool['tool_panel_section_label'])
                 tool_id = None
                 tool_status = None
-                if len(response) > 0:
-                    tool_id = response[0].get('id', None)
+                if len(response) > 0 and isinstance(response, list):
                     tool_status = response[0].get('status', None)
+                    tool_id = response[0].get('id', None)
+                elif isinstance(response, dict) and response.get('status', 'None') == 'ok':
+                    # This rare case happens if a tool is already installed but was not recognised as such
+                    # in the above check. In such a case the return value looks like this:
+                    # {u'status': u'ok', u'message': u'No repositories were installed, possibly because the selected repository has already been installed.'}
+                    tool_id = False
+                    log.debug("\tTool {0} is already installed.".format(tool['name']))
                 if tool_id and tool_status:
                     # Possibly an infinite loop here. Introduce a kick-out counter?
                     log.debug("\tTool installing", extra={'same_line': True})
