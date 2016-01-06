@@ -14,8 +14,23 @@
 
 - name: Install Tool Shed tools
   command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -y "{{ item | to_nice_yaml }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
+  register: install_result
+  changed_when: "'installed successfully' in install_result.stderr"
+  failed_when: "'Error installing a tool' in install_result.stderr"
+  ignore_errors: yes
   with_items:
     - "{{ tools }}"
+  when: galaxy_tools_ignore_errors
+
+- name: Install Tool Shed tools
+  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -y "{{ item | to_nice_yaml }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
+  register: install_result
+  changed_when: "'installed successfully' in install_result.stderr"
+  failed_when: "'Error installing a tool' in install_result.stderr"
+  ignore_errors: no
+  with_items:
+    - "{{ tools }}"
+  when: not galaxy_tools_ignore_errors
 
 - name: Remove tool management script
   file: dest={{ galaxy_tools_base_dir }}/install_tool_shed_tools.py state=absent
