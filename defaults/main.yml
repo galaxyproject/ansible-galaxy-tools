@@ -10,7 +10,7 @@ galaxy_tools_galaxy_instance_url: 127.0.0.1:8080
 
 # A list of files containing all the tools to be installed. See `files/tool_list.yaml.sample`
 # file for more about the format requirements of this file. The file names must be unique.
-galaxy_tools_tool_list_files: [ "tool_list.yaml" ]
+galaxy_tools_tool_list: "tool_list.yaml"
 
 # A system path from where this role will be run
 galaxy_tools_base_dir: /tmp

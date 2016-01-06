@@ -301,6 +301,9 @@ def _parse_cli_options():
     parser.add_argument("-t", "--toolsfile",
                         dest="tool_list_file",
                         help="Tools file to use (see tool_list.yaml.sample)",)
+    parser.add_argument("-y", "--yaml_tool",
+                        dest="tool_yaml",
+                        help="Install tool represented by yaml string",)
     parser.add_argument("--name",
                         help="The name of the tool to install (only applicable "
                              "if the tools file is not provided).")
@@ -458,6 +461,8 @@ def install_tools(options):
     if tool_list_file:
         tl = load_input_file(tool_list_file)  # Input file contents
         tools_info = tl['tools']  # The list of tools to install
+    elif options.tool_yaml:
+      tools_info = [yaml.load(options.tool_yaml)]
     else:
         # An individual tool was specified on the command line
         tools_info = [{"owner": options.owner,
@@ -596,7 +601,7 @@ if __name__ == "__main__":
     log = _setup_global_logger()
     options = _parse_cli_options()
     if options.tool_list_file or (options.name and options.owner and
-       options.tool_panel_section_id):
+       options.tool_panel_section_id) or (options.tool_yaml):
         install_tools(options)
     elif options.dbkeys_list_file:
         run_data_managers(options)
