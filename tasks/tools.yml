@@ -13,7 +13,7 @@
   include_vars: "{{ galaxy_tools_tool_list }}"
 
 - name: Install Tool Shed tools
-  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -y "{{ item | to_nice_yaml }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
+  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -y "{{ item | to_nice_yaml }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }} #"
   register: install_result
   changed_when: "'installed successfully' in install_result.stderr"
   failed_when: "'Error installing a tool' in install_result.stderr"
@@ -23,7 +23,7 @@
   when: galaxy_tools_ignore_errors
 
 - name: Install Tool Shed tools
-  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -y "{{ item | to_nice_yaml }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
+  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -y "{{ item | to_nice_yaml }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }} #"
   register: install_result
   changed_when: "'installed successfully' in install_result.stderr"
   failed_when: "'Error installing a tool' in install_result.stderr"

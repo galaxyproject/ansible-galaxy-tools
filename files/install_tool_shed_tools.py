@@ -2,10 +2,20 @@
 A script to automate installation of tool repositories from a Galaxy Tool Shed
 into an instance of Galaxy.
 
-Galaxy instance details and the installed tools can be provided in YAML
-format in a separate file (see ``tool_list.yaml.sample`` for a sample of
-such file) or on the command line as script options (see the usage help). If
-both are provided, the file will take precedence.
+Galaxy instance details and the installed tools can be provided in one of three
+ways:
+1. In the YAML format via dedicated files (see ``tool_list.yaml.sample`` for a
+   sample of such a file)
+2. On the command line as dedicated script options (see the usage help).
+3. As a single composite parameter to the script. The parameter must be a
+   single, YAML-formatted string with the keys corresponding to the keys
+   available for use in the YAML formatted file (for example:
+    `--yaml_tool "{'owner': 'kellrott', 'tool_shed_url':
+   'https://testtoolshed.g2.bx.psu.edu', 'tool_panel_section_id':
+   'peak_calling', 'name': 'synapse_interface'}"`).
+Only one of the methods can be used with each invocation of the script but if
+more than one are provided are provided, precedence will correspond to order
+of the items in the list above.
 
 When installing tools, Galaxy expects any `tool_panel_section_id` provided when
 installing a tool to already exist in the configuration. If the section
@@ -462,7 +472,7 @@ def install_tools(options):
         tl = load_input_file(tool_list_file)  # Input file contents
         tools_info = tl['tools']  # The list of tools to install
     elif options.tool_yaml:
-      tools_info = [yaml.load(options.tool_yaml)]
+        tools_info = [yaml.load(options.tool_yaml)]
     else:
         # An individual tool was specified on the command line
         tools_info = [{"owner": options.owner,
