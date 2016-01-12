@@ -8,17 +8,26 @@
   register: api_key
   when: create_user is defined and create_user
 
-- name: Set bootstrap user as Galaxy Admin
-  lineinfile: dest={{ galaxy_config_file }} state=present insertafter="app:main" regexp="admin_users =" line="admin_users = {{ galaxy_tools_admin_user }}"  #"
+- name: Set bootstrap user as Galaxy Admin if admin_users tag is already in the config file
+  replace: dest={{ galaxy_config_file }} regexp="^[ ]*admin_users[ ]*=[ ]*" replace="admin_users = {{ galaxy_tools_admin_user }},"  #"
+  register: admin_users_found
   when: create_user is defined and create_user
+
+- name: Set bootstrap user as Galaxy Admin
+  lineinfile: dest={{ galaxy_config_file }} state=present insertafter="app:main" regexp="^[ ]*admin_users[ ]*=[ ]*" line="admin_users = {{ galaxy_tools_admin_user }}"  #"
+  when: (create_user is defined) and create_user and (admin_users_found.msg is undefined)
 
 - name: Delete Galaxy bootstrap user
   command: chdir={{ galaxy_server_dir }} {{ galaxy_venv_dir }}/bin/python manage_bootstrap_user.py -c {{ galaxy_config_file }} delete
   when: delete_user is defined and delete_user
 
+- name: Remove bootstrap user as Galaxy Admin if admin_users tag was already in the config file before bootstrap_user task
+  replace: dest={{ galaxy_config_file }} regexp="admin_users = {{ galaxy_tools_admin_user }}," replace="admin_users = "  #"
+  when: (delete_user is defined) and delete_user and (admin_users_found.msg is defined)
+
 - name: Remove bootstrap user as Galaxy Admin
   lineinfile: dest={{ galaxy_config_file }} state=absent insertafter="app:main" regexp="admin_users =" line="admin_users = {{ galaxy_tools_admin_user }}"  #"
-  when: delete_user is defined and delete_user
+  when: (delete_user is defined) and delete_user and (admin_users_found.msg is undefined)
 
 - include: restart_galaxy.yml
 
