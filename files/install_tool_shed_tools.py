@@ -556,8 +556,8 @@ def install_tools(options):
                 tool_id = None
                 tool_status = None
                 if len(response) > 0 and isinstance(response, list):
-                    tool_status = response[0].get('status', None)
-                    tool_id = response[0].get('id', None)
+                    tool_status = response[-1].get('status', None)
+                    tool_id = response[-1].get('id', None)
                 elif isinstance(response, dict) and response.get('status', None) == 'ok':
                     # This rare case happens if a tool is already installed but
                     # was not recognised as such in the above check. In such a
