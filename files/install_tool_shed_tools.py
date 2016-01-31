@@ -92,6 +92,22 @@ def _setup_global_logger():
     logger.addHandler(file_handler)
     return logger
 
+def log_tool_install_error(tool, start, end, e, errored_tools):
+    """
+    Log failed tool installations
+    """
+    log.error("\t* Error installing a tool (after %s)! Name: %s," "owner: %s, revision: %s, error: %s" %
+          (tool['name'], str(end - start), tool['owner'], tool['revision'], e.body))
+    errored_tools.append({'name': tool['name'], 'owner': tool['owner'], 'revision': tool['revision'], 'error': e.body})
+
+def log_tool_install_success(tool, start, end, installed_tools):
+    """
+    Log successfull tool installation.
+    Tools that finish in error still count as successfull installs currently.
+    """
+    installed_tools.append({'name': tool['name'], 'owner': tool['owner'], 'revision': tool['revision']})
+    log.debug("\tTool %s installed successfully (in %s) at revision %s" % \
+              (tool['name'], str(end - start), tool['revision']))
 
 def load_input_file(tool_list_file='tool_list.yaml'):
     """
@@ -458,6 +474,55 @@ def run_data_managers(options):
     log.info("Errored DMs: {0}".format(errored_dms))
     log.info("Total run time: {0}".format(dt.datetime.now() - istart))
 
+def install_repository_revision(tool, tsc):
+    """
+    Installs single tool
+    """
+    response = tsc.install_repository_revision(
+    tool['tool_shed_url'], tool['name'], tool['owner'],
+    tool['revision'], tool['install_tool_dependencies'],
+    tool['install_repository_dependencies'],
+    tool['tool_panel_section_id'],
+    tool['tool_panel_section_label'])
+    if len(response) > 0 and isinstance(response, list):
+        tool_status = response[-1].get('status', None)
+        tool_id = response[-1].get('id', None)
+    elif isinstance(response, dict) and response.get('status', None) == 'ok':
+        # This rare case happens if a tool is already installed but
+        # was not recognised as such in the above check. In such a
+        # case the return value looks like this:
+        # {u'status': u'ok', u'message': u'No repositories were
+        #  installed, possibly because the selected repository has
+        #  already been installed.'}
+        log.debug("\tTool {0} is already installed.".format(tool['name']))
+    log.debug("\tTool installing", extra={'same_line': True})
+    return response
+
+
+def wait_for_install(tool, tsc, timeout=3600):
+    """
+    If nginx times out, we look into the list of installed repositories
+    and try to determine if a tool of the same namer/owner is still installing.
+    Returns True if install finished, returns False when timeout is exceeded.
+    """
+    def install_done(tool, tsc):
+        itl = tsc.get_repositories()
+        for it in itl:
+            if ( tool['name'] == it['name'] ) and ( it['owner'] == tool['owner'] ):
+                if it['status'] not in ['Installed', 'Error']:
+                    return False
+        return True
+
+    finished = install_done(tool, tsc)
+    while (not finished) and (timeout > 0):
+        timeout = timeout - 10
+        time.sleep(10)
+        finished = install_done(tool, tsc)
+    if timeout > 0:
+        return True
+    else:
+        return False
+
 
 def install_tools(options):
     """
@@ -547,40 +612,9 @@ def install_tools(options):
                        tool['tool_panel_section_id'] or tool['tool_panel_section_label'],
                        tool['revision'], dt.datetime.now() - istart))
             try:
-                response = tsc.install_repository_revision(
-                    tool['tool_shed_url'], tool['name'], tool['owner'],
-                    tool['revision'], tool['install_tool_dependencies'],
-                    tool['install_repository_dependencies'],
-                    tool['tool_panel_section_id'],
-                    tool['tool_panel_section_label'])
-                tool_id = None
-                tool_status = None
-                if len(response) > 0 and isinstance(response, list):
-                    tool_status = response[-1].get('status', None)
-                    tool_id = response[-1].get('id', None)
-                elif isinstance(response, dict) and response.get('status', None) == 'ok':
-                    # This rare case happens if a tool is already installed but
-                    # was not recognised as such in the above check. In such a
-                    # case the return value looks like this:
-                    # {u'status': u'ok', u'message': u'No repositories were
-                    #  installed, possibly because the selected repository has
-                    #  already been installed.'}
-                    log.debug("\tTool {0} is already installed.".format(tool['name']))
-                if tool_id and tool_status:
-                    # Possibly an infinite loop here. Introduce a kick-out counter?
-                    log.debug("\tTool installing", extra={'same_line': True})
-                    while tool_status not in ['Installed', 'Error']:
-                        log.debug("", extra={'same_line': True})
-                        time.sleep(10)
-                        tool_status = update_tool_status(tsc, tool_id)
-                    end = dt.datetime.now()
-                    installed_tools.append({'name': tool['name'], 'owner': tool['owner'],
-                                            'revision': tool['revision']})
-                    log.debug("\tTool %s installed successfully (in %s) at revision %s"
-                              % (tool['name'], str(end - start), tool['revision']))
-                else:
-                    end = dt.datetime.now()
-                    log.error("\tCould not retrieve tool status for {0}".format(tool['name']))
+                response = install_repository_revision(tool, tsc)
+                end = dt.datetime.now()
+                log_tool_install_success(tool = tool, start = start, end = end, installed_tools = installed_tools)
             except ConnectionError, e:
                 response = None
                 end = dt.datetime.now()
@@ -588,12 +622,19 @@ def install_tools(options):
                     log.debug("\tTool %s already installed (at revision %s)" %
                               (tool['name'], tool['revision']))
                 else:
-                    log.error("\t* Error installing a tool (after %s)! Name: %s,"
-                              "owner: %s, revision: %s, error: %s" %
-                              (tool['name'], str(end - start), tool['owner'],
-                               tool['revision'], e.body))
-                    errored_tools.append({'name': tool['name'], 'owner': tool['owner'],
-                                          'revision': tool['revision'], 'error': e.body})
+                    if e.message == "Unexpected response from galaxy: 504":
+                        log.debug("Timeout during install of %s, extending wait to 1h" % ((tool['name'])))
+                        success = wait_for_install(tool = tool, tsc = tsc, timeout = 3600)
+                        if success:
+                            log_tool_install_success(tool = tool, start = start, end = end,
+                                                     installed_tools = installed_tools)
+                            response = e.body  # TODO: find a better response message
+                        else:
+                            log_tool_install_error(tool = tool, start= start, end = end,
+                                                   e = e, errored_tools = errored_tools)
+                    else:
+                        log_tool_install_error(tool = tool, start = start, end = end,
+                                               e = e, errored_tools = errored_tools)
             outcome = {'tool': tool, 'response': response, 'duration': str(end - start)}
             responses.append(outcome)
 
