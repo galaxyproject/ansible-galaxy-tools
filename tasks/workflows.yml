@@ -15,7 +15,7 @@
     - "{{ galaxy_tools_workflows }}"
 
 - name: Install workflows
-  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_workflow.py -w {{ item | basename }} -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
+  command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_workflow.py -w "{{ item | basename }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }}
   with_items:
     - "{{ galaxy_tools_workflows }}"
 
