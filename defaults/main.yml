@@ -23,9 +23,10 @@ galaxy_tools_base_dir: /tmp
 # Blank variable to make sure it's defined
 galaxy_tools_api_key: ''
 
-# List of workflow files to be installed
+# List of workflow files to be installed. Use empty list ([]) to skip installing workflows
 
-galaxy_tools_workflows: []
+galaxy_tools_workflows:
+  - sample-workflow.ga
 
 ## Variables below are used only if the galaxy_install_bootstrap_user var is set
 
