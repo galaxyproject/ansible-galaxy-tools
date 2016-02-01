@@ -23,6 +23,10 @@ galaxy_tools_base_dir: /tmp
 # Blank variable to make sure it's defined
 galaxy_tools_api_key: ''
 
+# List of workflow files to be installed
+
+galaxy_tools_workflows: []
+
 ## Variables below are used only if the galaxy_install_bootstrap_user var is set
 
 # An email address with which the Galaxy bootstrap user will be created
