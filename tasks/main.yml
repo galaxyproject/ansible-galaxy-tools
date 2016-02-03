@@ -6,5 +6,8 @@
 - include: tools.yml
   when: galaxy_tools_install_tools
 
+- include: workflows.yml
+  when: galaxy_tools_install_workflows
+
 - include: bootstrap_user.yml delete_user={{ galaxy_tools_delete_bootstrap_user }}
   when: galaxy_tools_delete_bootstrap_user

@@ -1,0 +1,36 @@
+{
+    "a_galaxy_workflow": "true", 
+    "annotation": "", 
+    "format-version": "0.1", 
+    "name": "sample", 
+    "steps": {
+        "0": {
+            "annotation": "", 
+            "content_id": "cat1", 
+            "id": 0, 
+            "input_connections": {}, 
+            "inputs": [], 
+            "label": null, 
+            "name": "Concatenate datasets", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 329.03819274902344, 
+                "top": 226.55555725097656
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "cat1", 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"input1\": \"null\", \"queries\": \"[]\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "uuid": "911684d9-13a4-486c-80f9-016d8e169624", 
+            "workflow_outputs": []
+        }
+    }, 
+    "uuid": "d1182c65-72d6-4b93-ae4f-76af30db66cd"
+}
