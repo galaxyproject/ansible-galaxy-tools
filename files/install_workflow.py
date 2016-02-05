@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 from bioblend import galaxy
+import json
 
 def main():
     """
@@ -17,8 +18,13 @@ def main():
                         help="Galaxy admin user API key (required if not "
                              "defined in the tools list file)",)
     args = parser.parse_args()
+
     gi = galaxy.GalaxyInstance(url=args.galaxy_url, key=args.api_key)
-    gi.workflows.import_workflow_from_local_path(args.workflow_path)
+
+    import_uuid = json.load(open(args.workflow_path, 'r'))['uuid']
+    existing_uuids = [d['latest_workflow_uuid'] for d in gi.workflows.get_workflows()]
+    if import_uuid not in existing_uuids:
+        gi.workflows.import_workflow_from_local_path(args.workflow_path)
 
 if __name__ == '__main__':
     main()
