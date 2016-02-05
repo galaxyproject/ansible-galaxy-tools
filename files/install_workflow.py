@@ -3,6 +3,7 @@ import argparse
 from bioblend import galaxy
 import json
 
+
 def main():
     """
         This script uses bioblend to import .ga workflow files into a running instance of Galaxy
@@ -21,8 +22,8 @@ def main():
 
     gi = galaxy.GalaxyInstance(url=args.galaxy_url, key=args.api_key)
 
-    import_uuid = json.load(open(args.workflow_path, 'r'))['uuid']
-    existing_uuids = [d['latest_workflow_uuid'] for d in gi.workflows.get_workflows()]
+    import_uuid = json.load(open(args.workflow_path, 'r')).get('uuid')
+    existing_uuids = [d.get('latest_workflow_uuid') for d in gi.workflows.get_workflows()]
     if import_uuid not in existing_uuids:
         gi.workflows.import_workflow_from_local_path(args.workflow_path)
 
