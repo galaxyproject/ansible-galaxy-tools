@@ -20,8 +20,7 @@ import galaxy.config
 from galaxy.web import security
 from galaxy.model import mapping
 
-log = logging.getLogger( __name__ )
-
+logging.captureWarnings(True)
 
 VALID_PUBLICNAME_RE = re.compile( "^[a-z0-9\-]+$" )
 VALID_EMAIL_RE = re.compile( "[^@]+@[^@]+\.[^@]+" )
@@ -51,6 +50,48 @@ class BootstrapGalaxyApplication( object ):
 
     def shutdown( self ):
         pass
+
+
+class ProgressConsoleHandler(logging.StreamHandler):
+    """
+    A handler class which allows the cursor to stay on
+    one line for selected messages
+    """
+    on_same_line = False
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            same_line = hasattr(record, 'same_line')
+            if self.on_same_line and not same_line:
+                stream.write('\r\n')
+            stream.write(msg)
+            if same_line:
+                stream.write('.')
+                self.on_same_line = True
+            else:
+                stream.write('\r\n')
+                self.on_same_line = False
+            self.flush()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)
+
+
+def _setup_global_logger():
+    formatter = logging.Formatter('%(asctime)s %(levelname)-5s - %(message)s')
+    file_handler = logging.FileHandler('/tmp/galaxy_tools_bootstrap_user.log')
+    progress = ProgressConsoleHandler()
+    console = logging.StreamHandler()
+    console.setFormatter(formatter)
+
+    logger = logging.getLogger('test')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(progress)
+    logger.addHandler(file_handler)
+    return logger
 
 
 def create_api_key( app, user ):
@@ -177,6 +218,8 @@ def delete_bootstrap_user(ini_file, username):
         exit(1)
 
 if __name__ == "__main__":
+    global log
+    log = _setup_global_logger()
     parser = argparse.ArgumentParser(description="usage: python %prog [options]")
     parser.add_argument("-c", "--config",
                         required=True,
