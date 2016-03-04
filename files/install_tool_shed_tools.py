@@ -46,7 +46,10 @@ from bioblend.galaxy.client import ConnectionError
 # Omit (most of the) logging by external libraries
 logging.getLogger('bioblend').setLevel(logging.ERROR)
 logging.getLogger('requests').setLevel(logging.ERROR)
-logging.captureWarnings(True)  # Capture HTTPS warngings from urllib3
+try:
+    logging.captureWarnings(True)  # Capture HTTPS warngings from urllib3
+except AttributeError:
+    pass
 
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 
