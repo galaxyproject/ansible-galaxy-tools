@@ -8,7 +8,7 @@
   command: chdir={{ galaxy_tools_base_dir }} {{ galaxy_tools_base_dir }}/venv/bin/python install_tool_shed_tools.py -y "{{ item | to_nice_yaml }}" -a {{ galaxy_tools_api_key }} -g {{ galaxy_tools_galaxy_instance_url }} #"
   register: install_result
   changed_when: "'installed successfully' in install_result.stderr"
-  failed_when: "'Error installing a tool' in install_result.stderr"
+  failed_when: ('Error installing' in install_result.stderr) or ('Missing required' in install_result.stderr)
   ignore_errors: "{{ galaxy_tools_ignore_errors }}"
   with_items:
     - "{{ tools }}"
