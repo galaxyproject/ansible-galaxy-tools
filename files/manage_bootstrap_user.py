@@ -95,8 +95,15 @@ def _setup_global_logger():
     return logger
 
 
-def create_api_key(app, user):
-    api_key = app.security.get_new_guid()
+def create_api_key(app, user, preset_api_key):
+    """
+    Creates a random new api key if preset_api_key is False,
+    otherwise sets the API key to preset_api_key.
+    """
+    if preset_api_key:
+        api_key = preset_api_key
+    else:
+        api_key = app.security.get_new_guid()
     new_key = app.model.APIKeys()
     new_key.user_id = user.id
     new_key.key = api_key
@@ -105,11 +112,11 @@ def create_api_key(app, user):
     return api_key
 
 
-def get_or_create_api_key(app, user):
+def get_or_create_api_key(app, user, preset_api_key):
     if user.api_keys:
         key = user.api_keys[0].key
     else:
-        key = create_api_key(app, user)
+        key = create_api_key(app, user, preset_api_key)
     return key
 
 
@@ -196,12 +203,12 @@ def get_bootstrap_app(ini_file):
     return app
 
 
-def create_bootstrap_user(ini_file, username, user_email, password):
+def create_bootstrap_user(ini_file, username, user_email, password, preset_api_key):
     app = get_bootstrap_app(ini_file)
     user = get_or_create_user(app, user_email, password, username)
     if user is not None:
-        api_key = get_or_create_api_key(app, user)
-        print api_key
+        api_key = get_or_create_api_key(app, user, preset_api_key)
+        print(api_key)
         exit(0)
     else:
         log.error("Problem creating a new user: {0} and an associated API key."
@@ -231,22 +238,30 @@ if __name__ == "__main__":
     parser_create.set_defaults(action='create')
     parser_create.add_argument("-u", "--username",
                                default="cloud",
-                               help="Username to create. Defaults to 'cloud'",)
+                               help="Username to create. Defaults to 'cloud'",
+                               required="true",)
     parser_create.add_argument("-e", "--email",
                                default="cloud@galaxyproject.org",
-                               help="Email for user",)
+                               help="Email for user",
+                               required="true",)
     parser_create.add_argument("-p", "--password",
                                default="password",
-                               help="Password for user",)
+                               help="Password for user",
+                               required="true",)
+    parser_create.add_argument("-a", "--preset_api_key",
+                               default=False,
+                               help="Set API key for user",
+                               required="false",)
     parser_delete = subparsers.add_parser(
         'delete', help='delete an existing bootstrap user')
     parser_delete.set_defaults(action='delete')
     parser_delete.add_argument("-u", "--username",
                                default="cloud",
+                               required="true",
                                help="Username to delete. Defaults to 'cloud'",)
     args = parser.parse_args()
 
     if args.action == "create":
-        create_bootstrap_user(args.config, args.username, args.email, args.password)
+        create_bootstrap_user(args.config, args.username, args.email, args.password, args.preset_api_key)
     elif args.action == "delete":
         delete_bootstrap_user(args.config, args.username)
