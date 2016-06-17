@@ -19,6 +19,9 @@ galaxy_tools_ignore_errors: true
 # A system path from where this role will be run
 galaxy_tools_base_dir: /tmp
 
+# Set this to yes and change galaxy_tools_api_key to a string to create a predefined api key for the bootstrap user.
+galaxy_tools_admin_user_preset_api_key: no
+
 # Blank variable to make sure it's defined
 galaxy_tools_api_key: ''
 
