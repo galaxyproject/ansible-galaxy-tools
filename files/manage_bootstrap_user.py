@@ -176,8 +176,8 @@ def validate_email(email):
 
 
 def validate_password(password):
-    if len(password) < 6:
-        return "Use a password of at least 6 characters"
+    if len(password) < 5:
+        return "Use a password of at least 5 characters"
     return ''
 
 
