@@ -95,7 +95,7 @@ def _setup_global_logger():
     return logger
 
 
-def create_api_key(app, user, preset_api_key):
+def create_api_key(app, user, preset_api_key=False):
     """
     Creates a random new api key if preset_api_key is False,
     otherwise sets the API key to preset_api_key.
@@ -112,7 +112,7 @@ def create_api_key(app, user, preset_api_key):
     return api_key
 
 
-def get_or_create_api_key(app, user, preset_api_key):
+def get_or_create_api_key(app, user, preset_api_key=False):
     if user.api_keys:
         key = user.api_keys[0].key
     else:
@@ -203,7 +203,7 @@ def get_bootstrap_app(ini_file):
     return app
 
 
-def create_bootstrap_user(ini_file, username, user_email, password, preset_api_key):
+def create_bootstrap_user(ini_file, username, user_email, password, preset_api_key=False):
     app = get_bootstrap_app(ini_file)
     user = get_or_create_user(app, user_email, password, username)
     if user is not None:
