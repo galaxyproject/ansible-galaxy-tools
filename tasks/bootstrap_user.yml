@@ -16,10 +16,8 @@
 - name: Set bootstrap user as Galaxy Admin
   lineinfile: dest={{ galaxy_config_file }} state=present insertafter="app:main" regexp="^[ ]*admin_users[ ]*=[ ]*" line="admin_users = {{ galaxy_tools_admin_user }}"  #"
   when: (create_user is defined) and create_user and (admin_users_found.msg == "")
-
-- notify:
+  notify:
     - restart galaxy
-  when: (create_user is defined) and create_user and (admin_users_found.msg == "")
 
 - meta: flush_handlers
   when: (create_user is defined) and create_user and (admin_users_found.msg == "")
