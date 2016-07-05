@@ -10,5 +10,7 @@
   changed_when: "'installed successfully' in install_result.stderr"
   failed_when: ('Error installing' in install_result.stderr) or ('Missing required' in install_result.stderr)
   ignore_errors: "{{ galaxy_tools_ignore_errors }}"
+  notify:
+    - restart galaxy
   with_items:
     - "{{ tools }}"
