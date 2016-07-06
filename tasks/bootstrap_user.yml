@@ -4,7 +4,15 @@
   copy: src=manage_bootstrap_user.py dest={{ galaxy_server_dir }}/manage_bootstrap_user.py owner={{ galaxy_user_name }}
 
 - name: Create Galaxy bootstrap user
-  command: chdir={{ galaxy_server_dir }} {{ galaxy_venv_dir }}/bin/python manage_bootstrap_user.py -c {{ galaxy_config_file }} create -e {{ galaxy_tools_admin_user }} -u {{ galaxy_tools_admin_username }} -p {{ galaxy_tools_admin_user_password }}
+  command: >
+    chdir={{ galaxy_server_dir }} {{ galaxy_venv_dir }}/bin/python manage_bootstrap_user.py
+    -c {{ galaxy_config_file }} create
+    -e {{ galaxy_tools_admin_user }}
+    -u {{ galaxy_tools_admin_username }}
+    -p {{ galaxy_tools_admin_user_password }}
+    {% if galaxy_tools_admin_user_preset_api_key|bool %}
+    -a {{ galaxy_tools_api_key }}
+    {% endif %}
   register: api_key
   when: (create_user is defined) and create_user
 
