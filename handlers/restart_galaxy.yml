@@ -7,27 +7,15 @@
   become: yes
   become_user: root
 
-- name: Restart Galaxy
-  supervisorctl: name="galaxy:" state=restarted
-  when: supervisor_galaxy.failed is undefined
-  ignore_errors: yes
-  become: yes
-  become_user: root
+- name: Restart Galaxy (in docker container)
+  include: restart_galaxy_docker.yml
+  when: galaxy_runs_in_docker|bool
 
-- name: Stop Galaxy
-  shell: "{{ galaxy_server_dir }}/run.sh --pid-file={{ galaxy_tools_pid_file_name }} --log-file={{ galaxy_tools_log_file_name }} --stop-daemon"
-  when: supervisor_galaxy.failed is defined
-  ignore_errors: yes
+- name: Restart Galaxy (run.sh method)
+  include: restart_galaxy_run_sh.yml
+  when: supervisor_galaxy.failed is defined and not galaxy_runs_in_docker|bool
 
-- name: Wait for Galaxy to stop
-  wait_for: port=8080 delay=5 state=stopped timeout=150
-  when: supervisor_galaxy.failed is defined
+- name: Restart Galaxy (supervisor method)
+  include: restart_galaxy_supervisor.yml
+  when: supervisor_galaxy.failed is undefined and not galaxy_runs_in_docker|bool
 
-- name: Start Galaxy
-  shell: "{{ galaxy_server_dir }}/run.sh --pid-file={{ galaxy_tools_pid_file_name }} --log-file={{ galaxy_tools_log_file_name }} --daemon"
-  when: supervisor_galaxy.failed is defined
-  become_user: "{{ galaxy_user_name }}"
-
-- name: Wait for Galaxy to start
-  wait_for: port=8080 delay=5 state=started timeout=150
-  when: supervisor_galaxy.failed is defined
