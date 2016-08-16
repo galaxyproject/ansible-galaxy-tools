@@ -20,7 +20,7 @@ install:
   - ln -s tests/test_playbook.yml
 
   # Use the Galaxy Docker image and build it to test the role
-  - docker run -p 8080:80 quay.io/bgruening/galaxy 
+  - docker run -d -p 8080:80 quay.io/bgruening/galaxy 
 
 script:
   # Check the role works in the test playbook.
