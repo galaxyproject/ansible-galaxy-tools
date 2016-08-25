@@ -351,6 +351,11 @@ def _parse_cli_options():
                         help="Galaxy tool panel section ID where the tool will "
                              "be installed (the section must exist in Galaxy; "
                              "only applicable if the tools file is not provided).")
+    parser.add_argument("--new_tool_panel_section_label",
+                        dest="new_tool_panel_section_label",
+                        help="Label of new Galaxy tool panel section where the tool will "
+                             "be installed (the label must not exist in the tool panel; "
+                             "only applicable if the tools file is not provided).")
     parser.add_argument("--toolshed",
                         dest="tool_shed_url",
                         help="The Tool Shed URL where to install the tool from. "
@@ -481,7 +486,7 @@ def install_repository_revision(tool, tsc):
         tool['revision'], tool['install_tool_dependencies'],
         tool['install_repository_dependencies'],
         tool['tool_panel_section_id'],
-        tool['tool_panel_section_label'])
+        tool['new_tool_panel_section_label'])
     if isinstance(response, dict) and response.get('status', None) == 'ok':
         # This rare case happens if a tool is already installed but
         # was not recognised as such in the above check. In such a
@@ -534,10 +539,14 @@ def install_tools(options):
         tools_info = [yaml.load(options.tool_yaml)]
     else:
         # An individual tool was specified on the command line
-        tools_info = [{"owner": options.owner,
-                       "name": options.name,
-                       "tool_panel_section_id": options.tool_panel_section_id,
-                       "tool_shed_url": options.tool_shed_url or MTS}]
+        args_dict = {"owner": options.owner,
+                     "name": options.name,
+                     "tool_shed_url": options.tool_shed_url or MTS}
+        if 'tool_panel_section_id' in options:
+            args_dict['tool_panel_section_id'] = options.tool_panel_section_id
+        else:
+            args_dict['new_tool_panel_section_label'] = options.new_tool_panel_section_label
+        tools_info = [args_dict]
     galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
     gi = galaxy_instance(galaxy_url, api_key)
@@ -563,17 +572,17 @@ def install_tools(options):
         tool['name'] = tool_info.get('name', None)
         tool['owner'] = tool_info.get('owner', None)
         tool['tool_panel_section_id'] = tool_info.get('tool_panel_section_id', None)
-        tool['tool_panel_section_label'] = tool_info.get('tool_panel_section_label', None)
+        tool['new_tool_panel_section_label'] = tool_info.get('new_tool_panel_section_label', None)
         # Check if all required tool sections have been provided; if not, skip
         # the installation of this tool. Note that data managers are an exception
         # but they must contain string `data_manager` within the tool name.
-        if not tool['name'] or not tool['owner'] or (not (tool['tool_panel_section_id']
-                                                          or tool['tool_panel_section_label'])
-                                                     and 'data_manager' not in tool.get('name', '')):
+        if not tool['name'] or not tool['owner'] or (not (tool['tool_panel_section_id'] or
+                                                          tool['new_tool_panel_section_label']) and
+                                                     'data_manager' not in tool.get('name', '')):
             log.error("Missing required tool info field; skipping [name: '{0}'; "
-                      "owner: '{1}'; tool_panel_section_id: '{2}']; tool_panel_section_label: '{3}'"
+                      "owner: '{1}'; tool_panel_section_id: '{2}']; new_tool_panel_section_label: '{3}'"
                       .format(tool['name'], tool['owner'], tool['tool_panel_section_id'],
-                              tool['tool_panel_section_label']))
+                              tool['new_tool_panel_section_label']))
             continue
         # Populate fields that can optionally be provided (if not provided, set
         # defaults).
@@ -603,7 +612,7 @@ def install_tools(options):
             log.debug('(%s/%s) Installing tool %s from %s to section "%s" at '
                       'revision %s (TRT: %s)' %
                       (counter, total_num_tools, tool['name'], tool['owner'],
-                       tool['tool_panel_section_id'] or tool['tool_panel_section_label'],
+                       tool['tool_panel_section_id'] or tool['new_tool_panel_section_label'],
                        tool['revision'], dt.datetime.now() - istart))
             try:
                 response = install_repository_revision(tool, tsc)
@@ -647,8 +656,9 @@ if __name__ == "__main__":
     global log
     log = _setup_global_logger()
     options = _parse_cli_options()
-    if options.tool_list_file or (options.name and options.owner and
-       options.tool_panel_section_id) or (options.tool_yaml):
+    if options.tool_list_file or options.tool_yaml or (options.name and options.owner and
+                                                       (options.tool_panel_section_id or
+                                                        options.new_tool_panel_section_label)):
         install_tools(options)
     elif options.dbkeys_list_file:
         run_data_managers(options)
