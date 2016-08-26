@@ -7,6 +7,8 @@
   become: yes
   become_user: root
 
+# All of the following includes are in the tasks folder
+
 - name: Restart Galaxy (in docker container)
   include: restart_galaxy_docker.yml
   when: galaxy_runs_in_docker|bool
