@@ -25,16 +25,19 @@
 #                              label, with multiple words joined with
 #                              underscores (e.g., 'BED tools' -> 'bed_tools').
 #
-# Tou can also specify the following optional keys to further define the
+# You can also specify the following optional keys to further define the
 # installation properties:
 #  * tool_shed_url: the URL of the Tool Shed from where the tool should be
 #                   installed. (default: https://toolshed.g2.bx.psu.edu)
 #  * revisions: a list of revisions of the tool, all of which will attempt to
 #               be installed. (default: latest)
-#  * install_tool_dependencies: True or False - whether to install tool
-#                               dependencies or not. (default: True)
-#  * install_repository_dependencies: True or False - whether to install repo
-#                               dependencies or not. (default: True)
+#  * install_tool_dependencies: True or False - whether to install classic galaxy 
+#                               Tool Shed dependencies or not. (default: True)
+#  * install_repository_dependencies: True or False - whether to install classic
+#                               Galaxy Tool Shed repo dependencies or not. 
+#                               (default: True)
+#  * install_resolver_dependencies: True or False - whether to install dependencies
+#                                through a resolver (e.g Conda). (default: False)
 
 api_key: <Admin user API key from galaxy_instance>
 galaxy_instance: <Galaxy instance IP>

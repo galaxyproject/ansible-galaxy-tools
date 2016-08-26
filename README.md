@@ -1,10 +1,10 @@
 This Ansible role is for automated installation of tools from a Tool Shed into
 Galaxy.
 
-When run, this role will create an execution environment and invoke
-a tool installation script (`files/install_tool_shed_tools.py`) to
-install desired tools into Galaxy. The list of tools to install is provided
-in `files/tool_list.yaml` file.
+When run, this role will create an execution environment, install
+[ephemeris](https://github.com/galaxyproject/ephemeris) and invoke the
+shed-install command to install desired tools into Galaxy. The list of tools to
+install is provided in `files/tool_list.yaml` file.
 
 Usage
 -----

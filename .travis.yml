@@ -1,0 +1,27 @@
+---
+language: python
+python: "2.7"
+
+services:
+  - docker
+
+before_install:
+  - docker --version
+  - docker info
+
+install:
+  # Install Ansible.  # TODO: install from pypi when https://github.com/ansible/ansible/issues/15915 has been released
+  - git clone --recursive -b stable-2.1 https://github.com/ansible/ansible
+  - pip install ansible/
+
+  # Add ansible.cfg to pick up roles path.
+  - printf '[defaults]\nroles_path = ../' > ansible.cfg
+  # Link test playbook into root folder
+  - ln -s tests/test_playbook.yml
+
+  # Use the Galaxy Docker image to test the role
+  - docker run --name galaxy -d -p 8080:80 quay.io/bgruening/galaxy
+
+script:
+  # Check the role works in the test playbook.
+  - ansible-playbook -i "localhost," -c local -e galaxy_tools_galaxy_instance_url=http://127.0.0.1:8080 -e galaxy_runs_in_docker=yes -e galaxy_tools_api_key=admin test_playbook.yml
