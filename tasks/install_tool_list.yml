@@ -6,7 +6,7 @@
   command: '{{ galaxy_tools_base_dir }}/venv/bin/shed-install -y "{{ item | to_nice_yaml }}" -a "{{ galaxy_tools_api_key }}" -g "{{ galaxy_tools_galaxy_instance_url }}"'
   register: install_result
   changed_when: "'installed successfully' in install_result.stderr"
-  failed_when: ('Error installing' in install_result.stderr) or ('Missing required' in install_result.stderr)
+  failed_when: ('Error installing' in install_result.stderr) or ('Missing required' in install_result.stderr) or (install_result.rc != 0)
   ignore_errors: "{{ galaxy_tools_ignore_errors }}"
   notify:
     - restart galaxy
