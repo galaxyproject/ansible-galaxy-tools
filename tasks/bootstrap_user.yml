@@ -20,6 +20,8 @@
   replace: dest={{ galaxy_config_file }} regexp="^[ ]*admin_users[ ]*=[ ]*" replace="admin_users = {{ galaxy_tools_admin_user }},"  #"
   register: admin_users_found
   when: (create_user is defined) and create_user
+  notify:
+    - restart galaxy
 
 - name: Set bootstrap user as Galaxy Admin
   lineinfile: dest={{ galaxy_config_file }} state=present insertafter="app:main" regexp="^[ ]*admin_users[ ]*=[ ]*" line="admin_users = {{ galaxy_tools_admin_user }}"  #"
