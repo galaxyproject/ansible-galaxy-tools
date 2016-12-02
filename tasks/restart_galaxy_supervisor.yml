@@ -3,3 +3,6 @@
   ignore_errors: yes
   become: yes
   become_user: root
+
+- pause:
+    seconds: 5
