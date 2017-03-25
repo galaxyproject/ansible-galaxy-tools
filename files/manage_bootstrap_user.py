@@ -95,7 +95,7 @@ def _setup_global_logger():
     return logger
 
 
-def create_api_key(app, user, preset_api_key=False):
+def create_api_key(app, user, preset_api_key=None):
     """
     Creates a random new api key if preset_api_key is False,
     otherwise sets the API key to preset_api_key.
