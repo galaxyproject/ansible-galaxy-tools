@@ -112,7 +112,7 @@ def create_api_key(app, user, preset_api_key=False):
     return api_key
 
 
-def get_or_create_api_key(app, user, preset_api_key=False):
+def get_or_create_api_key(app, user, preset_api_key=None):
     if user.api_keys:
         key = user.api_keys[0].key
     else:
@@ -203,7 +203,7 @@ def get_bootstrap_app(ini_file):
     return app
 
 
-def create_bootstrap_user(ini_file, username, user_email, password, preset_api_key=False):
+def create_bootstrap_user(ini_file, username, user_email, password, preset_api_key=None):
     app = get_bootstrap_app(ini_file)
     user = get_or_create_user(app, user_email, password, username)
     if user is not None:
@@ -239,25 +239,25 @@ if __name__ == "__main__":
     parser_create.add_argument("-u", "--username",
                                default="cloud",
                                help="Username to create. Defaults to 'cloud'",
-                               required="true",)
+                               required=True)
     parser_create.add_argument("-e", "--email",
                                default="cloud@galaxyproject.org",
                                help="Email for user",
-                               required="true",)
+                               required=True)
     parser_create.add_argument("-p", "--password",
                                default="password",
                                help="Password for user",
-                               required="true",)
+                               required=True)
     parser_create.add_argument("-a", "--preset_api_key",
-                               default=False,
+                               default=None,
                                help="Set API key for user",
-                               required="false",)
+                               required=False)
     parser_delete = subparsers.add_parser(
         'delete', help='delete an existing bootstrap user')
     parser_delete.set_defaults(action='delete')
     parser_delete.add_argument("-u", "--username",
                                default="cloud",
-                               required="true",
+                               required=True,
                                help="Username to delete. Defaults to 'cloud'",)
     args = parser.parse_args()
 
