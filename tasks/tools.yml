@@ -4,6 +4,8 @@
   pip: name={{ item }} virtualenv={{ galaxy_tools_base_dir }}/venv virtualenv_command="{{ pip_virtualenv_command | default( 'virtualenv' ) }}"
   with_items:
     - ephemeris==0.4.0  # Pinned version should make sure ephemeris version matches what the role has been tested with
+    - pyyaml
+    - bioblend
 
 - include: install_tool_list.yml
   with_items: '{{ galaxy_tools_tool_list_files }}'
