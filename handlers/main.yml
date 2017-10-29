@@ -1,2 +1,2 @@
-- name: restart galaxy
+- name: ansible-galaxy-tools restart galaxy
   include: restart_galaxy.yml

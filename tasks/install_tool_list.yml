@@ -9,6 +9,6 @@
   failed_when: ('Error installing' in install_result.stderr) or ('Missing required' in install_result.stderr) or (install_result.rc != 0)
   ignore_errors: "{{ galaxy_tools_ignore_errors }}"
   notify:
-    - restart galaxy
+    - ansible-galaxy-tools restart galaxy
   with_items:
     - "{{ tools }}"
