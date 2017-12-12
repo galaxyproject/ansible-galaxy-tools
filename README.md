@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/galaxyproject/ansible-galaxy-tools.svg?branch=master)](https://travis-ci.org/galaxyproject/ansible-galaxy-tools)
+
 This Ansible role is for automated installation of tools from a Tool Shed into
 Galaxy.
 
