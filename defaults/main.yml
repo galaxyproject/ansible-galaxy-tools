@@ -5,6 +5,10 @@ galaxy_tools_install_workflows: no
 galaxy_tools_create_bootstrap_user: no
 galaxy_tools_delete_bootstrap_user: no
 
+# If enabled, the restart handler will attempt to restart Galaxy after tool
+# installation, assuming Galaxy is controlled by run.sh, docker or supervisor.
+galaxy_restart_handler_enabled: no
+
 # A URL or an IP address for the Galaxy instance where the tools are to be
 # installed
 galaxy_tools_galaxy_instance_url: 127.0.0.1:8080
