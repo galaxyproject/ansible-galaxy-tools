@@ -10,9 +10,7 @@ before_install:
   - docker info
 
 install:
-  # Install Ansible.  # TODO: install from pypi when https://github.com/ansible/ansible/issues/15915 has been released
-  - git clone --recursive -b stable-2.1 https://github.com/ansible/ansible
-  - pip install ansible/
+  - pip install ansible
 
   # Add ansible.cfg to pick up roles path.
   - printf '[defaults]\nroles_path = ../' > ansible.cfg
@@ -25,8 +23,6 @@ install:
   # Wait for web server port to come up
   - ansible localhost -c local -m wait_for -a "port=8080 delay=5 state=started timeout=150"
 
-  # Wait for Galaxy to respond
-  - ansible localhost -c local -m uri -a "url=http://localhost:8080/ register=result until='result.status[0] in [\"2\", \"3\"]' retries=50 delay=3 ignore_error=True"
 script:
   # Check the role works in the test playbook.
   - ansible-playbook -i "localhost," -c local -e galaxy_tools_galaxy_instance_url=http://127.0.0.1:8080 -e galaxy_runs_in_docker=yes -e galaxy_tools_api_key=admin test_playbook.yml
