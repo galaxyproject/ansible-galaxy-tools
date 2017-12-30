@@ -8,6 +8,9 @@
 - include: tools.yml
   when: galaxy_tools_install_tools
 
+- include: data_managers.yml
+  when: galaxy_tools_install_data_managers
+
 - include: workflows.yml
   when: galaxy_tools_install_workflows
 
