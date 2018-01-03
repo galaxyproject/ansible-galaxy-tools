@@ -1,6 +1,7 @@
 ---
 
 galaxy_tools_install_tools: yes
+galaxy_tools_install_data_managers: no 
 galaxy_tools_install_workflows: no
 galaxy_tools_create_bootstrap_user: no
 galaxy_tools_delete_bootstrap_user: no
@@ -11,11 +12,15 @@ galaxy_restart_handler_enabled: no
 
 # A URL or an IP address for the Galaxy instance where the tools are to be
 # installed
-galaxy_tools_galaxy_instance_url: 127.0.0.1:8080
+galaxy_tools_galaxy_instance_url: http://127.0.0.1:8080
 
 # A list of yml files that list the tools to be installed. See `files/tool_list.yaml.sample`
 # file for more about the format requirements of this file. The file names must be unique.
 galaxy_tools_tool_list_files: [ "tool_list.yaml" ]
+
+# A yml file that lists the data-managers and genomes to be installed
+# see `files/tool_list.yaml.sample`
+galaxy_tools_data_managers_list: "run_data_managers.yaml"
 
 # should the playbook continue when errors are found
 galaxy_tools_ignore_errors: true
