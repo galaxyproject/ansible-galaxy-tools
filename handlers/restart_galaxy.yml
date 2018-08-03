@@ -15,9 +15,8 @@
 
 - name: Restart Galaxy (run.sh method)
   include: restart_galaxy_run_sh.yml
-  when: supervisor_galaxy.failed is defined and not galaxy_runs_in_docker|bool
+  when: (supervisor_galaxy.failed is defined) and not (galaxy_runs_in_docker|bool)
 
 - name: Restart Galaxy (supervisor method)
   include: restart_galaxy_supervisor.yml
-  when: supervisor_galaxy.failed is undefined and not galaxy_runs_in_docker|bool
-
+  when: (supervisor_galaxy.failed is undefined) and not (galaxy_runs_in_docker|bool)
