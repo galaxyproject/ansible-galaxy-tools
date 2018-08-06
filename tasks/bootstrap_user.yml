@@ -52,4 +52,4 @@
 
 # This needs to come last or it will short-circuit execution when the galaxy_tools_api_key fact is set
 - set_fact: galaxy_tools_api_key="{{ api_key.stdout_lines[0] }}"  #"
-  when: create_user is defined and create_user
+  when: (create_user is defined) and create_user
