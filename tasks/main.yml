@@ -1,18 +1,18 @@
 ---
 - fail: msg="Installed ansible version {{ ansible_version.full }}, but ansible version > 2.1.1.1 required"
-  when: "{{ ansible_version.full | version_compare('2.1.1.1', '<') }}"
+  when: ansible_version.full | version_compare('2.1.1.1', '<')
 
-- include: bootstrap_user.yml create_user={{ galaxy_tools_create_bootstrap_user }}
+- include_tasks: bootstrap_user.yml create_user={{ galaxy_tools_create_bootstrap_user }}
   when: galaxy_tools_create_bootstrap_user and (not galaxy_tools_api_key or galaxy_tools_admin_user_preset_api_key)
 
-- include: tools.yml
+- include_tasks: tools.yml
   when: galaxy_tools_install_tools
 
-- include: data_managers.yml
+- include_tasks: data_managers.yml
   when: galaxy_tools_install_data_managers
 
-- include: workflows.yml
+- include_tasks: workflows.yml
   when: galaxy_tools_install_workflows
 
-- include: bootstrap_user.yml delete_user={{ galaxy_tools_delete_bootstrap_user }}
+- include_tasks: bootstrap_user.yml delete_user={{ galaxy_tools_delete_bootstrap_user }}
   when: galaxy_tools_delete_bootstrap_user
