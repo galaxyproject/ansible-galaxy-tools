@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import sys
+import yaml
 
 import argparse
 
@@ -194,10 +195,15 @@ def validate_publicname(username):
 
 def get_bootstrap_app(ini_file):
     config_parser = ConfigParser.ConfigParser({'here': os.getcwd()})
-    config_parser.read(ini_file)
-    config_dict = {}
-    for key, value in config_parser.items("app:main"):
-        config_dict[key] = value
+    try:
+        config_parser.read(ini_file)
+        config_dict = {}
+        for key, value in config_parser.items("app:main"):
+            config_dict[key] = value
+    except:
+        with open(ini_file, 'r') as ymlfile:
+            cfg = yaml.load(ymlfile)
+        config_dict = cfg['galaxy']
     config = galaxy.config.Configuration(**config_dict)
     app = BootstrapGalaxyApplication(config)
     return app
