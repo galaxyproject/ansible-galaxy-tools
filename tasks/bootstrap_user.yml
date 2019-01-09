@@ -23,8 +23,10 @@
   notify:
     - ansible-galaxy-tools restart galaxy
 
+
+# to do restore the possible option that config file is paste-ini style #
 - name: Set bootstrap user as Galaxy Admin
-  lineinfile: dest={{ galaxy_config_file }} state=present insertafter="app:main" regexp="^[ ]*admin_users[ ]*=[ ]*" line="admin_users = {{ galaxy_tools_admin_user }}"  #"
+  lineinfile: dest={{ galaxy_config_file }} state=present regexp='^([ ]*)admin_users[ ]*{{ ":" }}.*' line='    admin_users{{ ":" }} {{ galaxy_tools_admin_user }}'
   when: (create_user is defined) and create_user and (admin_users_found.msg == "")
   notify:
     - ansible-galaxy-tools restart galaxy
