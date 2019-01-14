@@ -66,10 +66,7 @@ galaxy_server_dir: /mnt/galaxy/galaxy-app
 galaxy_venv_dir: "{{ galaxy_server_dir }}/.venv"
 
 # A system path for Galaxy's main configuration file
-# Galaxy config file can either be 'ini-paste' (old style) or 'yaml'
-galaxy_config_style: "ini-paste"
-galaxy_config_file_basename: "galaxy.{{ 'yml' if galaxy_config_style in ('yaml', 'yml') else 'ini' }}"
-galaxy_config_file: "{{ galaxy_server_dir }}/config/{{ galaxy_config_file_basename }}"
+galaxy_config_file: "{{ galaxy_server_dir }}/config/galaxy.ini"
 
 ## Set this to 'yes' if you are targeting galaxy in a docker container
 galaxy_runs_in_docker: no
