@@ -18,7 +18,11 @@ eggs.require("SQLAlchemy >= 0.4")
 eggs.require("mercurial")
 
 import galaxy.config
-from galaxy.web import security
+
+try:
+    from galaxy.web.security import SecurityHelper as Security
+except ImportError:
+    from galaxy.security.idencoding import IdEncodingHelper as Security
 from galaxy.model import mapping
 
 logging.captureWarnings(True)
@@ -43,7 +47,7 @@ class BootstrapGalaxyApplication(object):
                                   self.config.database_connection,
                                   engine_options={},
                                   create_tables=False)
-        self.security = security.SecurityHelper(id_secret=self.config.id_secret)
+        self.security = Security(id_secret=self.config.id_secret)
 
     @property
     def sa_session(self):
