@@ -16,6 +16,8 @@ import yaml
 try:
     from galaxy.security.idencoding import IdEncodingHelper as Security
 except ImportError:
+    # maintains backwards compatibility with galaxy versions < 19.05
+    # see https://github.com/galaxyproject/galaxy/pull/7560
     from galaxy.web.security import SecurityHelper as Security
 
 eggs.require("SQLAlchemy >= 0.4")
