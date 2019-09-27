@@ -1,30 +1,28 @@
 #!/usr/bin/env python
 
 import ConfigParser
+import argparse
 import logging
 import os
 import re
 import sys
+
+import galaxy.config
+from galaxy import eggs
+from galaxy.model import mapping
+
 import yaml
 
-import argparse
+try:
+    from galaxy.security.idencoding import IdEncodingHelper as Security
+except ImportError:
+    from galaxy.web.security import SecurityHelper as Security
 
+eggs.require("SQLAlchemy >= 0.4")
+eggs.require("mercurial")
 new_path = [os.path.join(os.getcwd(), "lib")]
 new_path.extend(sys.path[1:])
 sys.path = new_path
-
-from galaxy import eggs
-eggs.require("SQLAlchemy >= 0.4")
-eggs.require("mercurial")
-
-import galaxy.config
-
-try:
-    from galaxy.web.security import SecurityHelper as Security
-except ImportError:
-    from galaxy.security.idencoding import IdEncodingHelper as Security
-from galaxy.model import mapping
-
 logging.captureWarnings(True)
 
 VALID_PUBLICNAME_RE = re.compile("^[a-z0-9\-]+$")
@@ -193,7 +191,8 @@ def validate_publicname(username):
     if len(username) > 255:
         return "Public name cannot be more than 255 characters in length"
     if not(VALID_PUBLICNAME_RE.match(username)):
-        return "Public name must contain only lower-case letters, numbers and '-'"
+        return "Public name must contain only lower-case letters, \
+                numbers and '-'"
     return ''
 
 
@@ -213,7 +212,8 @@ def get_bootstrap_app(ini_file):
     return app
 
 
-def create_bootstrap_user(ini_file, username, user_email, password, preset_api_key=None):
+def create_bootstrap_user(ini_file, username, user_email, password,
+                          preset_api_key=None):
     app = get_bootstrap_app(ini_file)
     user = get_or_create_user(app, user_email, password, username)
     if user is not None:
@@ -235,16 +235,19 @@ def delete_bootstrap_user(ini_file, username):
         log.error("Problem deleting user: {0}".format(username))
         exit(1)
 
+
 if __name__ == "__main__":
     global log
     log = _setup_global_logger()
-    parser = argparse.ArgumentParser(description="usage: python %prog [options]")
+    parser = argparse.ArgumentParser(
+                description="usage: python %prog [options]")
     parser.add_argument("-c", "--config",
                         required=True,
                         help="Path to <galaxy .ini file>")
     subparsers = parser.add_subparsers(
         title="action", help='create or delete bootstrap users')
-    parser_create = subparsers.add_parser('create', help='create a new bootstrap user')
+    parser_create = subparsers.add_parser('create',
+                                          help='create a new bootstrap user')
     parser_create.set_defaults(action='create')
     parser_create.add_argument("-u", "--username",
                                default="cloud",
@@ -272,6 +275,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.action == "create":
-        create_bootstrap_user(args.config, args.username, args.email, args.password, args.preset_api_key)
+        create_bootstrap_user(args.config, args.username, args.email,
+                              args.password, args.preset_api_key)
     elif args.action == "delete":
         delete_bootstrap_user(args.config, args.username)
