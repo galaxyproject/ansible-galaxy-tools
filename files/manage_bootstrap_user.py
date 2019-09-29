@@ -214,7 +214,10 @@ def get_bootstrap_app(ini_file):
     return app
 
 
-def create_bootstrap_user(ini_file, username, user_email, password,
+def create_bootstrap_user(ini_file,
+                          username,
+                          user_email,
+                          password,
                           preset_api_key=None):
     app = get_bootstrap_app(ini_file)
     user = get_or_create_user(app, user_email, password, username)
@@ -277,7 +280,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.action == "create":
-        create_bootstrap_user(args.config, args.username, args.email,
-                              args.password, args.preset_api_key)
+        create_bootstrap_user(args.config,
+                              args.username,
+                              args.email,
+                              args.password,
+                              args.preset_api_key)
     elif args.action == "delete":
         delete_bootstrap_user(args.config, args.username)
