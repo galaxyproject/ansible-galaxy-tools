@@ -7,12 +7,17 @@ import os
 import re
 import sys
 
+new_path = [os.path.join(os.getcwd(), "lib")]
+new_path.extend(sys.path[1:])
+sys.path = new_path
+
 import galaxy.config
 from galaxy import eggs
+eggs.require("SQLAlchemy >= 0.4")
+eggs.require("mercurial")
 from galaxy.model import mapping
 
 import yaml
-
 try:
     from galaxy.security.idencoding import IdEncodingHelper as Security
 except ImportError:
@@ -20,11 +25,6 @@ except ImportError:
     # see https://github.com/galaxyproject/galaxy/pull/7560
     from galaxy.web.security import SecurityHelper as Security
 
-eggs.require("SQLAlchemy >= 0.4")
-eggs.require("mercurial")
-new_path = [os.path.join(os.getcwd(), "lib")]
-new_path.extend(sys.path[1:])
-sys.path = new_path
 logging.captureWarnings(True)
 
 VALID_PUBLICNAME_RE = re.compile("^[a-z0-9\-]+$")
