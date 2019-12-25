@@ -2,7 +2,7 @@
 - name: Check ansible version
   fail:
     msg: "Installed ansible version {{ ansible_version.full }}, but ansible version > 2.1.1.1 required"
-  when: ansible_version.full is version_compare('2.1.1.1', '<')
+  when: ansible_version.full is version('2.1.1.1', '<')
 
 - include_tasks: "bootstrap_user.yml"
   vars:
