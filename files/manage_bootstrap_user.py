@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    import configparser
 import argparse
 import logging
 import os
