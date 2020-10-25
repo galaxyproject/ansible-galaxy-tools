@@ -1,16 +1,19 @@
 ---
 language: python
-python: "2.7"
+python: "3.6"
 
 services:
   - docker
+  - pip3
 
 before_install:
   - docker --version
   - docker info
+  - pip  --version
+  - pip3 --version
 
 install:
-  - pip install ansible==2.7.4
+  - pip3 install ansible==2.7.4
 
   # Add ansible.cfg to pick up roles path.
   - printf '[defaults]\nroles_path = ../' > ansible.cfg
@@ -18,7 +21,7 @@ install:
   - ln -s tests/test_playbook.yml
 
   # Use the Galaxy Docker image to test the role
-  - docker run --name galaxy -d -p 8080:80 quay.io/bgruening/galaxy
+  - docker run --name galaxy -d -p 8080:80 quay.io/bgruening/galaxy:19.01
 
   # Wait for web server port to come up
   - ansible localhost -c local -m wait_for -a "port=8080 delay=5 state=started timeout=150"
