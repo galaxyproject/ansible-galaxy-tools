@@ -2,7 +2,7 @@
 
 try:
     import ConfigParser
-except ImportError:
+except ImportError or ModuleNotFoundError:
     import configparser
 import argparse
 import logging
