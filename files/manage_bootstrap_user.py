@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError or ModuleNotFoundError:
+    import configparser
 import argparse
 import logging
 import os
@@ -199,7 +202,10 @@ def validate_publicname(username):
 
 
 def get_bootstrap_app(ini_file):
-    config_parser = ConfigParser.ConfigParser({'here': os.getcwd()})
+    try:
+        config_parser = ConfigParser.ConfigParser({'here': os.getcwd()})
+    except NameError:
+        config_parser = configparser.ConfigParser({'here': os.getcwd()})
     try:
         config_parser.read(ini_file)
         config_dict = {}
