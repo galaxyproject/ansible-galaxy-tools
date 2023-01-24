@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-try:
-    import ConfigParser
-except ImportError or ModuleNotFoundError:
-    import configparser
+import configparser
 import argparse
 import logging
 import os
@@ -15,18 +12,12 @@ new_path.extend(sys.path[1:])
 sys.path = new_path
 
 import galaxy.config
-from galaxy import eggs
-eggs.require("SQLAlchemy >= 0.4")
-eggs.require("mercurial")
+import sqlalchemy
+import mercurial
 from galaxy.model import mapping
 
 import yaml
-try:
-    from galaxy.security.idencoding import IdEncodingHelper as Security
-except ImportError:
-    # maintains backwards compatibility with galaxy versions < 19.05
-    # see https://github.com/galaxyproject/galaxy/pull/7560
-    from galaxy.web.security import SecurityHelper as Security
+from galaxy.security.idencoding import IdEncodingHelper as Security
 
 logging.captureWarnings(True)
 
@@ -202,19 +193,10 @@ def validate_publicname(username):
 
 
 def get_bootstrap_app(ini_file):
-    try:
-        config_parser = ConfigParser.ConfigParser({'here': os.getcwd()})
-    except NameError:
-        config_parser = configparser.ConfigParser({'here': os.getcwd()})
-    try:
-        config_parser.read(ini_file)
-        config_dict = {}
-        for key, value in config_parser.items("app:main"):
-            config_dict[key] = value
-    except:
-        with open(ini_file, 'r') as ymlfile:
-            cfg = yaml.load(ymlfile)
-        config_dict = cfg['galaxy']
+    config_parser = configparser.ConfigParser({'here': os.getcwd()})
+    with open(ini_file, 'r') as ymlfile:
+        cfg = yaml.full_load(ymlfile)
+    config_dict = cfg['galaxy']
     config = galaxy.config.Configuration(**config_dict)
     app = BootstrapGalaxyApplication(config)
     return app
@@ -251,10 +233,12 @@ if __name__ == "__main__":
     global log
     log = _setup_global_logger()
     parser = argparse.ArgumentParser(
-                description="usage: python %prog [options]")
+        prog = "manage_bootstrap_user.py",
+        description = "usage: python %prog [options]",
+        epilog = "Be sure to execute in root galaxy dir and galaxy venv")
     parser.add_argument("-c", "--config",
                         required=True,
-                        help="Path to <galaxy .ini file>")
+                        help="Path to <galaxy.yml file>")
     subparsers = parser.add_subparsers(
         title="action", help='create or delete bootstrap users')
     parser_create = subparsers.add_parser('create',
