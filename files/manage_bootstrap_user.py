@@ -1,28 +1,24 @@
-#!/usr/bin/env python
-
-import configparser
 import argparse
 import logging
 import os
 import re
 import sys
 
+
 new_path = [os.path.join(os.getcwd(), "lib")]
 new_path.extend(sys.path[1:])
 sys.path = new_path
+import galaxy.config  # noqa: E402
+from galaxy.model import mapping  # noqa: E402
+from galaxy.security.idencoding import IdEncodingHelper \
+     as Security  # noqa: E402
 
-import galaxy.config
-import sqlalchemy
-import mercurial
-from galaxy.model import mapping
-
-import yaml
-from galaxy.security.idencoding import IdEncodingHelper as Security
+import yaml  # noqa: E402
 
 logging.captureWarnings(True)
 
-VALID_PUBLICNAME_RE = re.compile("^[a-z0-9\-]+$")
-VALID_EMAIL_RE = re.compile("[^@]+@[^@]+\.[^@]+")
+VALID_PUBLICNAME_RE = re.compile(r'^[a-z0-9\-]+$')
+VALID_EMAIL_RE = re.compile(r'[^@]+@[^@]+\.[^@]+')
 
 
 class BootstrapGalaxyApplication(object):
@@ -76,7 +72,7 @@ class ProgressConsoleHandler(logging.StreamHandler):
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception:
             self.handleError(record)
 
 
@@ -192,9 +188,8 @@ def validate_publicname(username):
     return ''
 
 
-def get_bootstrap_app(ini_file):
-    config_parser = configparser.ConfigParser({'here': os.getcwd()})
-    with open(ini_file, 'r') as ymlfile:
+def get_bootstrap_app(yml_file):
+    with open(yml_file, 'r') as ymlfile:
         cfg = yaml.full_load(ymlfile)
     config_dict = cfg['galaxy']
     config = galaxy.config.Configuration(**config_dict)
@@ -202,12 +197,12 @@ def get_bootstrap_app(ini_file):
     return app
 
 
-def create_bootstrap_user(ini_file,
+def create_bootstrap_user(yml_file,
                           username,
                           user_email,
                           password,
                           preset_api_key=None):
-    app = get_bootstrap_app(ini_file)
+    app = get_bootstrap_app(yml_file)
     user = get_or_create_user(app, user_email, password, username)
     if user is not None:
         api_key = get_or_create_api_key(app, user, preset_api_key)
@@ -219,8 +214,8 @@ def create_bootstrap_user(ini_file,
         exit(1)
 
 
-def delete_bootstrap_user(ini_file, username):
-    app = get_bootstrap_app(ini_file)
+def delete_bootstrap_user(yml_file, username):
+    app = get_bootstrap_app(yml_file)
     user = delete_user(app, username)
     if user is not None:
         exit(0)
@@ -233,9 +228,9 @@ if __name__ == "__main__":
     global log
     log = _setup_global_logger()
     parser = argparse.ArgumentParser(
-        prog = "manage_bootstrap_user.py",
-        description = "usage: python %prog [options]",
-        epilog = "Be sure to execute in root galaxy dir and galaxy venv")
+        prog="manage_bootstrap_user.py",
+        description="usage: python %prog [options]",
+        epilog="Be sure to execute in root galaxy dir and galaxy venv")
     parser.add_argument("-c", "--config",
                         required=True,
                         help="Path to <galaxy.yml file>")
